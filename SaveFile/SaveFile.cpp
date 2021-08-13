@@ -1,15 +1,14 @@
 #include "SaveFile.h"
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <ctype.h>
+#include <fstream>
+#include <iostream>
+#include <string>
 
-
-// -> bool
-bool SaveFile::AddProperty(std::string Property) {
-    for (char CharValue: Property) {
+bool SaveFile::AddProperty(std::string Property)
+{
+    for (char CharValue : Property) {
         if (isalnum(CharValue) == 0) {
-            std::cerr << "Error name! Uncorect char is: " << CharValue << std::endl;
+            std::cerr << "Error name! Uncorect char is: <" << CharValue << ">. Full string: <" << Property << ">" << std::endl;
             return false;
         }
     }
@@ -17,21 +16,21 @@ bool SaveFile::AddProperty(std::string Property) {
     return true;
 }
 
-// -> set
-// -> bool
-void SaveFile::SetProperty(std::string Property, std::string Value) {
+bool SaveFile::SetProperty(std::string Property, std::string Value)
+{
     if (_Map.find(Property) == _Map.end()) {
-        std::cerr << "The given key does not exist!" << std::endl;
-        return;
+        std::cerr << "The given key does not exist! Key: " << Property << std::endl;
+        return false;
     }
     _Map[Property] = Value;
+    return true;
 }
 
-// -> bool
-bool SaveFile::MakeSave(std::string FilePath) {
+bool SaveFile::MakeSave(std::string FilePath)
+{
     std::ofstream fout(FilePath);
     if (fout.fail()) {
-        std::cerr << "Cant opent file!";
+        std::cerr << "Cant opent file!" << '\n';
         return false;
     }
     for (auto const& info : _Map) {
@@ -41,71 +40,79 @@ bool SaveFile::MakeSave(std::string FilePath) {
     return true;
 }
 // -> bool
-bool SaveFile::ReadSave(std::string FilePath) {
+
+bool SaveFile::IsExeptable(char Char)
+{
+    return (isalnum(Char) != 0 || Char == ':' || Char == '-' || Char == '_');
+}
+std::string SaveFile::Word(std::string string, size_t *position)
+{
+    if (string[*position] == '\'') {
+        (*position)++;
+    } else {std::cout << "Error in file format. Missing leading <'> in " << string << " at position " << *position << ", string[*position] = <" << string[*position] << ">" <<  std::endl; return "";}
+
+    size_t indexFirst = *position;
+
+
+    while (IsExeptable(string[*position])) {
+        (*position)++;
+    }
+
+    if (string[*position] == '\'') {
+        (*position)++;
+    } else if (string[*position] == ':') {
+        std::cout << "Error in file format. Missing terminating <'> in " << string << std::endl; return "";
+    } else {
+        std::cout << "Error in file format. Illegal symbol in word " << string << std::endl; return "";
+    }
+    
+    std::string word = string.substr(indexFirst, *position - indexFirst - 1);
+    
+    return word;
+}
+
+bool SaveFile::ReadSave(std::string FilePath)
+{
     std::string string;
 
     std::ifstream file(FilePath);
+
     if (file.fail()) {
-        std::cerr << "Cant opent file!";
-        return true;
+        std::cerr << "Cant opent file!" << '\n';
+        return false;
     }
 
     while (std::getline(file, string)) {
-        int indexSeparator = 0;
-        statesParce state(PROPERTY);
-        std::string Property;
-        std::string PropertyValue;
-        for (int i = 0; i < string.length(); i ++) {
-            if (string[i] == ':') {
-                int indexFirst =  string.find("'", indexSeparator);
-                int indexSecond = string.find("'", indexFirst);
-                if (indexFirst == std::string::npos || indexSecond == std::string::npos) {
-                    std::cerr << "Error format file!" << std::endl;
-                    return false;
-                }
-                else {
-                    std::string Value = string.substr(indexFirst + 1, indexSecond);
-                    for (char CharInValue: Value) {
-                        if (isalnum(CharInValue) == 0) {
-                            std::cerr << "Error name! Uncorect char is: " << CharInValue << std::endl;
-                            return false;
-                        }
-                    }
-                    switch (state) {
-                        
-                        case PROPERTY: Property = Value; state = PROPERTY_VALUE; break;
-                        case PROPERTY_VALUE: PropertyValue = Value; break;
-                    }               
-                }
-            }
+        size_t indexSeparator = 0;
+        std::string Propetry = Word(string, &indexSeparator);
+
+        if (Propetry == "")
+            return false;
+
+        if (string[indexSeparator] == ':') {
+            indexSeparator++;
+        } else {
+            std::cerr << "Error separator! indexSeparator = " << indexSeparator << ", string[indexSeparator + 1] = <" << string[indexSeparator + 1] << ">" << std::endl;
+            std::cerr << "Full line: <" << string << ">" << std::endl; 
+            return false;
         }
-        SaveFile::AddProperty(Property);
-        SaveFile::SaveProperty(Property, PropertyValue);        
+
+        SaveFile::AddProperty(Propetry);
+        std::string Value = Word(string, &indexSeparator);
+
+        if (Value == "") return false;
+        SaveFile::SetProperty(Propetry, Value);
+
+
     }
     return true;
 }
 
-
-std::string SaveFile::ReadProperty(std::string Property) {
+std::string SaveFile::ReadProperty(std::string Property)
+{
     if (_Map.find(Property) == _Map.end()) {
-        std::cerr << "The given key does not exist!";
+        std::cerr << "The given key does not exist! Key: " << Property << std::endl;
         return "";
     }
     return _Map[Property];
-}
-
-int main() {
-    SaveFile Save;
-
-    Save.AddProperty("something");
-    Save.AddProperty("somethinig");
-    Save.SetProperty("something", "5");
-    Save.SetProperty("somethinig", "6");
-    Save.MakeSave("map.txt");
-
-    Save.ReadSave("map.txt");
-
-    std::cout << Save.ReadProperty("something") << std::endl;
-    std::cout << Save.ReadProperty("somethinig") << std::endl;
-    std::cout << Save.ReadProperty("somdsdsdsething") << std::endl;
 }
