@@ -3,6 +3,9 @@
 #define SAVEFILE_H
 #include <map>
 
+
+enum statesParce {PROPERTY, PROPERTY_VALUE};
+
 class SaveFile {
 
     public:
@@ -16,6 +19,5 @@ class SaveFile {
         StringMap _Map = StringMap();
 
 };
-bool IsCharCorrect(char Char);
 #endif
 
