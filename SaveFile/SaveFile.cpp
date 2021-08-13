@@ -4,24 +4,22 @@
 #include <string>
 #include <ctype.h>
 
-#define CHARACTERS "1234567890qwertyuioplkjhgfdesazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM"
-
-enum statesParce {PROPERTY, PROPERTY_VALUE};
 
 // -> bool
-void SaveFile::AddProperty(std::string Property) {
+bool SaveFile::AddProperty(std::string Property) {
     for (char CharValue: Property) {
         if (isalnum(CharValue) == 0) {
             std::cerr << "Error name! Uncorect char is: " << CharValue << std::endl;
-            return;
+            return false;
         }
     }
     _Map.insert(std::pair<std::string, std::string>(Property, ""));
+    return true;
 }
 
 // -> set
 // -> bool
-void SaveFile::SaveProperty(std::string Property, std::string Value) {
+void SaveFile::SetProperty(std::string Property, std::string Value) {
     if (_Map.find(Property) == _Map.end()) {
         std::cerr << "The given key does not exist!" << std::endl;
         return;
@@ -30,33 +28,26 @@ void SaveFile::SaveProperty(std::string Property, std::string Value) {
 }
 
 // -> bool
-void SaveFile::MakeSave(std::string FilePath) {
+bool SaveFile::MakeSave(std::string FilePath) {
     std::ofstream fout(FilePath);
     if (fout.fail()) {
         std::cerr << "Cant opent file!";
-        return;
+        return false;
     }
     for (auto const& info : _Map) {
         fout << '\'' << info.first << "':'" << info.second << "'\n";
     }
     fout.close();
-}
-
-bool IsCharCorrect(char Char) {
-    for (char CharValue : CHARACTERS) {
-        if (Char != CharValue) return false;
-    }
     return true;
 }
-
 // -> bool
-void SaveFile::ReadSave(std::string FilePath) {
+bool SaveFile::ReadSave(std::string FilePath) {
     std::string string;
 
     std::ifstream file(FilePath);
     if (file.fail()) {
         std::cerr << "Cant opent file!";
-        return;
+        return true;
     }
 
     while (std::getline(file, string)) {
@@ -70,13 +61,14 @@ void SaveFile::ReadSave(std::string FilePath) {
                 int indexSecond = string.find("'", indexFirst);
                 if (indexFirst == std::string::npos || indexSecond == std::string::npos) {
                     std::cerr << "Error format file!" << std::endl;
+                    return false;
                 }
                 else {
                     std::string Value = string.substr(indexFirst + 1, indexSecond);
                     for (char CharInValue: Value) {
                         if (isalnum(CharInValue) == 0) {
                             std::cerr << "Error name! Uncorect char is: " << CharInValue << std::endl;
-                            return;
+                            return false;
                         }
                     }
                     switch (state) {
@@ -90,6 +82,7 @@ void SaveFile::ReadSave(std::string FilePath) {
         SaveFile::AddProperty(Property);
         SaveFile::SaveProperty(Property, PropertyValue);        
     }
+    return true;
 }
 
 
@@ -106,8 +99,8 @@ int main() {
 
     Save.AddProperty("something");
     Save.AddProperty("somethinig");
-    Save.SaveProperty("something", "5");
-    Save.SaveProperty("somethinig", "6");
+    Save.SetProperty("something", "5");
+    Save.SetProperty("somethinig", "6");
     Save.MakeSave("map.txt");
 
     Save.ReadSave("map.txt");
