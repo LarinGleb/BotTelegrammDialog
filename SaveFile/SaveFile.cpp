@@ -45,14 +45,16 @@ bool SaveFile::IsExeptable(char Char)
 {
     return (isalnum(Char) != 0 || Char == ':' || Char == '-' || Char == '_');
 }
-std::string SaveFile::Word(std::string string, size_t *position)
+std::string SaveFile::Word(std::string string, size_t* position)
 {
     if (string[*position] == '\'') {
         (*position)++;
-    } else {std::cout << "Error in file format. Missing leading <'> in " << string << " at position " << *position << ", string[*position] = <" << string[*position] << ">" <<  std::endl; return "";}
+    } else {
+        std::cout << "Error in file format. Missing leading <'> in " << string << " at position " << *position << ", string[*position] = <" << string[*position] << ">" << std::endl;
+        return "";
+    }
 
     size_t indexFirst = *position;
-
 
     while (IsExeptable(string[*position])) {
         (*position)++;
@@ -60,14 +62,17 @@ std::string SaveFile::Word(std::string string, size_t *position)
 
     if (string[*position] == '\'') {
         (*position)++;
+
     } else if (string[*position] == ':') {
-        std::cout << "Error in file format. Missing terminating <'> in " << string << std::endl; return "";
+        std::cout << "Error in file format. Missing terminating <'> in " << string << std::endl;
+        return "";
     } else {
-        std::cout << "Error in file format. Illegal symbol in word " << string << std::endl; return "";
+        std::cout << "Error in file format. Illegal symbol in word " << string << std::endl;
+        return "";
     }
-    
+
     std::string word = string.substr(indexFirst, *position - indexFirst - 1);
-    
+
     return word;
 }
 
@@ -93,17 +98,16 @@ bool SaveFile::ReadSave(std::string FilePath)
             indexSeparator++;
         } else {
             std::cerr << "Error separator! indexSeparator = " << indexSeparator << ", string[indexSeparator + 1] = <" << string[indexSeparator + 1] << ">" << std::endl;
-            std::cerr << "Full line: <" << string << ">" << std::endl; 
+            std::cerr << "Full line: <" << string << ">" << std::endl;
             return false;
         }
 
         SaveFile::AddProperty(Propetry);
         std::string Value = Word(string, &indexSeparator);
 
-        if (Value == "") return false;
+        if (Value == "")
+            return false;
         SaveFile::SetProperty(Propetry, Value);
-
-
     }
     return true;
 }
