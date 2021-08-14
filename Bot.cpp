@@ -10,7 +10,10 @@ typedef enum activestate_t {
 typedef enum botstate_t {
     DEFAULT,
     BOTREVIEW,
-    BOTFRIEND
+    BOTFRIEND,
+    BOTGUIDE,
+    BOTTIME,
+    BOTPARCE
 } StateBot;
 
 
@@ -49,17 +52,32 @@ int main()
 {
     SaveFile Save;
     ActiveBot MyState = ACTIVE;
-
+    StateBot BotState = DEFAULT;
     Save.ReadSave("../BotSettings.txt");
     TgBot::Bot bot(Save.ReadProperty("Token"));
 
     InitCommandsBotMain(bot, &MyState);
 
-    bot.getEvents().onAnyMessage([&bot, &MyState](TgBot::Message::Ptr message)    {
+    bot.getEvents().onAnyMessage([&bot, BotState, MyState](TgBot::Message::Ptr message)    {
         switch (MyState)
         {
         case ACTIVE:
-            /// something fir you
+            switch(BotState) {
+                case BOTFRIEND: //  для Пети
+                break;
+
+                case BOTGUIDE: // for vlad
+                break;
+
+                case BOTREVIEW:
+                break;
+
+                case BOTPARCE: // for sasha
+                break;
+
+                case BOTTIME: // for valya
+                break;
+            }
             break;
         case EXIT:
             return;
