@@ -1,50 +1,80 @@
 #include <stdio.h>
-#include <tgbot/tgbot.h>
 #include "SaveFile/SaveFile.h"
+#include "tgbot/tgbot.h"
+
+typedef enum activestate_t {
+    EXIT,
+    ACTIVE
+} ActiveBot;
+
+typedef enum botstate_t {
+    DEFAULT,
+    BOTREVIEW,
+    BOTFRIEND
+} StateBot;
+
+
+StateBot GetState(std::string State) {
+    if (State == "botfriend") {
+        return BOTFRIEND;
+    }
+    else if (State == "botreview") {
+        return BOTREVIEW;
+    }
+    else { 
+        return DEFAULT;
+    }
+}
+
+ActiveBot GetActive(std::string State) {
+    if (State == "active") {return EXIT;}
+    else {return EXIT;}
+}
+
+bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType) {
+
+    bot.getEvents().onCommand("start", [&bot, ActiveType](TgBot::Message::Ptr message) { 
+        bot.getApi().sendMessage(message->chat->id, "Hi!");
+        *ActiveType = ACTIVE;
+    });
+    bot.getEvents().onCommand("exit", [&bot, ActiveType](TgBot::Message::Ptr message) { 
+        bot.getApi().sendMessage(message->chat->id, "Good!");
+        *ActiveType = EXIT;
+    });
+
+    return true;
+}
+
 int main()
 {
-    // ====================
-    // SAVE FILE CONFIG
-
-    // save file workflow
     SaveFile Save;
+    ActiveBot MyState = ACTIVE;
 
     Save.ReadSave("../BotSettings.txt");
-    Save.AddProperty("Status");
-    Save.SetProperty("Status", "Calm");
-    Save.AddProperty("Token");
-    Save.SetProperty("Token", "1940339152:AAH8fohu8_cETEVz-LNOBEAKT2a5VEJ0Q-8");
-    Save.AddProperty("Config");
-    Save.SetProperty("Config", "0");
-    Save.MakeSave("../BotSettings.txt");
-    return 0;
-
-    // ====================
-    // BOT BODY
-
     TgBot::Bot bot(Save.ReadProperty("Token"));
-    bot.getEvents().onCommand("start", [&bot](TgBot::Message::Ptr message) { 
-        bot.getApi().sendMessage(message->chat->id, "Hi!"); 
+
+    InitCommandsBotMain(bot, &MyState);
+
+    bot.getEvents().onAnyMessage([&bot, &MyState](TgBot::Message::Ptr message)    {
+        switch (MyState)
+        {
+        case ACTIVE:
+            /// something fir you
+            break;
+        case EXIT:
+            return;
+        default:
+            break;
+        }
+        
     });
 
-    bot.getEvents().onAnyMessage([&bot](TgBot::Message::Ptr message)    {
-        printf("User wrote %s\n", message->text.c_str());
-        if (StringTools::startsWith(message->text, "/start"))
-        {
-            return;
-        }
-        bot.getApi().sendMessage(message->chat->id, "Your message is: " + message->text);
-    });
-    
-    printf("Bot username: %s\n", bot.getApi().getMe()->username.c_str());
     TgBot::TgLongPoll longPoll(bot);
     while (true)
     {
         printf("Long poll started\n");
         longPoll.start();
     }
-
-
     
     return 0;
 }

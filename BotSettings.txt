@@ -1,3 +1,1 @@
-'Config':'0'
-'Status':'Calm'
 'Token':'1940339152:AAH8fohu8_cETEVz-LNOBEAKT2a5VEJ0Q-8'
