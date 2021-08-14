@@ -44,7 +44,9 @@ bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType) {
         bot.getApi().sendMessage(message->chat->id, "Good!");
         *ActiveType = EXIT;
     });
-
+    bot.getEvents().onCommand("help", [&bot](TgBot::Message::Ptr message) { 
+        bot.getApi().sendMessage(message->chat->id, "Writing help");
+    });
     return true;
 }
 
@@ -73,6 +75,7 @@ int main()
                 break;
 
                 case BOTPARCE: // for sasha
+                
                 break;
 
                 case BOTTIME: // for valya
