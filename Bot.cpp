@@ -80,6 +80,9 @@ int main()
 
                 case BOTTIME: // for valya
                 break;
+
+                case DEFAULT:
+                break;
             }
             break;
         case EXIT:
