@@ -1,16 +1,49 @@
 #include "SaveFile.h"
-#include <ctype.h>
-#include <fstream>
-#include <iostream>
-#include <string>
 
-bool SaveFile::AddProperty(std::string Property)
+
+//====================
+//Erros Check
+
+
+bool SaveFile::IsPropertyExists(std::string Property) {
+    if (_Map.find(Property) == _Map.end()) {
+        std::cerr << "The given key does not exist! Key: " << Property << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool SaveFile::IsExeptable(char Char)
 {
-    for (char CharValue : Property) {
-        if (isalnum(CharValue) == 0) {
-            std::cerr << "Error name! Uncorect char is: <" << CharValue << ">. Full string: <" << Property << ">" << std::endl;
+    return (isalnum(Char) != 0 || Char == ':' || Char == '-' || Char == '_');
+}
+
+bool SaveFile::IsWordCorrect(std::string Word) {
+    for (char CharValue : Word) {
+        if (!IsExeptable(CharValue)) {
+            std::cerr << "Error name! Uncorect char is: <" << CharValue << ">. Full string: <" << Word << ">" << std::endl;
             return false;
         }
+    }
+    return true;
+}
+
+
+//=================
+// Working with Properties
+
+
+bool SaveFile::DeleteProperty(std::string Property) {
+    if (!SaveFile::IsPropertyExists(Property)) {
+        return false;
+    }
+    _Map.erase(Property);
+    return true;
+}
+bool SaveFile::AddProperty(std::string Property)
+{
+    if (!SaveFile::IsWordCorrect(Property)) {
+        return false;
     }
     _Map.insert(std::pair<std::string, std::string>(Property, ""));
     return true;
@@ -18,8 +51,7 @@ bool SaveFile::AddProperty(std::string Property)
 
 bool SaveFile::SetProperty(std::string Property, std::string Value)
 {
-    if (_Map.find(Property) == _Map.end()) {
-        std::cerr << "The given key does not exist! Key: " << Property << std::endl;
+    if (!SaveFile::IsPropertyExists(Property)) {
         return false;
     }
     _Map[Property] = Value;
@@ -41,38 +73,29 @@ bool SaveFile::MakeSave(std::string FilePath)
 }
 // -> bool
 
-bool SaveFile::IsExeptable(char Char)
-{
-    return (isalnum(Char) != 0 || Char == ':' || Char == '-' || Char == '_');
-}
-std::string SaveFile::Word(std::string string, size_t* position)
+std::string SaveFile::Word(std::string string, size_t *position)
 {
     if (string[*position] == '\'') {
         (*position)++;
-    } else {
-        std::cout << "Error in file format. Missing leading <'> in " << string << " at position " << *position << ", string[*position] = <" << string[*position] << ">" << std::endl;
-        return "";
-    }
+    } else {std::cout << "Error in file format. Missing leading <'> in " << string << " at position " << *position << ", string[*position] = <" << string[*position] << ">" <<  std::endl; return "";}
 
     size_t indexFirst = *position;
 
-    while (IsExeptable(string[*position])) {
+
+    while (SaveFile::IsExeptable(string[*position])) {
         (*position)++;
     }
 
     if (string[*position] == '\'') {
         (*position)++;
-
     } else if (string[*position] == ':') {
-        std::cout << "Error in file format. Missing terminating <'> in " << string << std::endl;
-        return "";
+        std::cout << "Error in file format. Missing terminating <'> in " << string << std::endl; return "";
     } else {
-        std::cout << "Error in file format. Illegal symbol in word " << string << std::endl;
-        return "";
+        std::cout << "Error in file format. Illegal symbol in word " << string << std::endl; return "";
     }
-
+    
     std::string word = string.substr(indexFirst, *position - indexFirst - 1);
-
+    
     return word;
 }
 
@@ -98,24 +121,24 @@ bool SaveFile::ReadSave(std::string FilePath)
             indexSeparator++;
         } else {
             std::cerr << "Error separator! indexSeparator = " << indexSeparator << ", string[indexSeparator + 1] = <" << string[indexSeparator + 1] << ">" << std::endl;
-            std::cerr << "Full line: <" << string << ">" << std::endl;
+            std::cerr << "Full line: <" << string << ">" << std::endl; 
             return false;
         }
 
         SaveFile::AddProperty(Propetry);
         std::string Value = Word(string, &indexSeparator);
 
-        if (Value == "")
-            return false;
+        if (Value == "") return false;
         SaveFile::SetProperty(Propetry, Value);
+
+
     }
     return true;
 }
 
 std::string SaveFile::ReadProperty(std::string Property)
 {
-    if (_Map.find(Property) == _Map.end()) {
-        std::cerr << "The given key does not exist! Key: " << Property << std::endl;
+    if (!SaveFile::IsPropertyExists(Property)) {
         return "";
     }
     return _Map[Property];
