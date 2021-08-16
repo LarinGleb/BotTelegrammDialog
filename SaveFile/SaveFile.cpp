@@ -1,8 +1,5 @@
 #include "SaveFile.h"
-#include <ctype.h>
-#include <fstream>
-#include <iostream>
-#include <string>
+
 
 bool SaveFile::AddProperty(std::string Property)
 {
