@@ -2,10 +2,8 @@
 #ifndef SAVEFILE_H
 #define SAVEFILE_H
 #include <map>
-#include <ctype.h>
-#include <fstream>
-#include <iostream>
 #include <string>
+
 
 class SaveFile {
 
