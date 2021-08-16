@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/dialog/Panda/BotTelegrammDialog/ForTD/PPForTD.cpp
+tgbot/tgbot.h
+-
+PPForTD.h
+/home/dialog/Panda/BotTelegrammDialog/ForTD/PPForTD.h
+string
+-
+
+/home/dialog/Panda/BotTelegrammDialog/ForTD/PPForTD.h
+tgbot/tgbot.h
+-
+string
+-
+
