@@ -121,7 +121,7 @@ int main()
                 case BOTTIME: // for valya
                 break;
 
-                case DEFAULT: 
+                case DEFAULT:
                 break;
             }
             break;

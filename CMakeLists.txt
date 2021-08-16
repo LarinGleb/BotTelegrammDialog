@@ -18,13 +18,16 @@ add_executable(echobot Bot.cpp)
 
 include(${CMAKE_SOURCE_DIR}/CMake/clang-format.cmake)
 add_subdirectory(SaveFile)
+add_subdirectory(ForTD)
 
 
 target_link_libraries(echobot SaveLib)
+target_link_libraries(echobot ForTD)
+
 include_directories(/usr/local/include ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
 
 add_subdirectory(CMake)
 
 target_link_libraries(echobot /usr/local/lib/libTgBot.a ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
-add_dependencies(echobot SaveLib)
+add_dependencies(echobot SaveLib ForTD)
