@@ -20,7 +20,9 @@ bool InitBotTD(TgBot::Bot& bot, std::shared_ptr<TgBot::Message> message) {
 
     keyboard->inlineKeyboard.push_back(row0);
 
-    bot.getApi().sendMessage(message->chat->id, "Привет! это модуль для тех, кто не знает, что можно подарить тайному дрругу. Итак, ты хочешь узнать подсказку или помочь другим, добавив свой вариант?", false, 0, keyboard);
+    bot.getApi().sendMessage(message->chat->id, "Привет! Это модуль для тех, кто не знает, 
+    что можно подарить тайному другу, и для тех, кто хочет помочь справиться с этим другим. 
+    Итак, ты хочешь узнать подсказку или помочь другим, добавив свой вариант?", false, 0, keyboard);
 
     return true;
 }
@@ -85,17 +87,17 @@ std::string TDSex(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
     keyboardPrise->inlineKeyboard.push_back(row2);
     
     if(StringTools::startsWith(query->data, "ForBoy")){ 
-        bot.getApi().sendMessage(query->message->chat->id, "А сколько будеь стоить?" ,false, 0, keyboardPrise, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrise, "Markdown");
         return "Boy";
     }
 
     else if(StringTools::startsWith(query->data, "ForGirl")){ 
-        bot.getApi().sendMessage(query->message->chat->id, "А сколько будеь стоить?" ,false, 0, keyboardPrise, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrise, "Markdown");
         return "Girl";
     }
 
     else if(StringTools::startsWith(query->data, "ForAll")){ 
-        bot.getApi().sendMessage(query->message->chat->id, "А сколько будеь стоить?" ,false, 0, keyboardPrise, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrise, "Markdown");
         return "All";
     }
 
