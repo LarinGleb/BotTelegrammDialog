@@ -3,6 +3,7 @@
 #include "SaveFile/SaveFile.h"
 #include "tgbot/tgbot.h"
 #include "ForTD/PPForTD.h"
+#include "LibDB/DB.h"
 
 typedef enum activestate_t {
     EXIT,
@@ -49,6 +50,7 @@ bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType) {
     bot.getEvents().onCommand("help", [&bot](TgBot::Message::Ptr message) { 
         bot.getApi().sendMessage(message->chat->id, "Writing help");
     });
+    
 
     return true;
 }
@@ -60,6 +62,9 @@ int main()
     std::string Prise;
     std::string EatOrNo;
     std::string AddPodsk;
+    const std::string username = "psny";
+    const std::string hostname = "192.168.88.240";
+    const std::string password = "12345678";
     
     SaveFile Save;
     ActiveBot MyState = ACTIVE;
@@ -67,7 +72,23 @@ int main()
     Save.ReadSave("../BotSettings.txt");
     TgBot::Bot bot(Save.ReadProperty("Token"));
 
+    db_api::Connector conn(hostname.c_str(), username.c_str(), password.c_str(), "rpnac5");
+
     InitCommandsBotMain(bot, &MyState);
+
+    TgBot::InlineKeyboardMarkup::Ptr keyboardBot(new TgBot::InlineKeyboardMarkup);
+    std::vector<TgBot::InlineKeyboardButton::Ptr> row0;
+
+    TgBot::InlineKeyboardButton::Ptr ButtonBOTGUIDE(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr ButtonBOTTIME(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr ButtonBOTREVIEW(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr ButtonBOTPARCE(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr ButtonBOTFRIEND(new TgBot::InlineKeyboardButton);
+
+    
+    bot.getEvents().onCommand("moduls", [&bot, &BotState, &keyboardBot](TgBot::Message::Ptr message) { 
+        bot.getApi().sendMessage(message->chat->id, "Выберите бота: ", false, 0, keyboardBot);
+    });
 
      bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Prise, &EatOrNo, &AddPodsk, &BotState](TgBot::CallbackQuery::Ptr query) {
         if ((StringTools::startsWith(query->data, "AddNew")) || (StringTools::startsWith(query->data, "ToKnow"))){
