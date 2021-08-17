@@ -1,12 +1,11 @@
 #include "SaveFile.h"
-#include <iostream>
-#include <fstream>
 
+#include <fstream>
+#include <iostream>
 //====================
 //Erros Check
 
-
-bool SaveFile::IsPropertyExists(std::string Property) {
+bool SaveFile::IsPropertyExists(const std::string& Property) {
     if (_Map.find(Property) == _Map.end()) {
         std::cerr << "The given key does not exist! Key: " << Property << std::endl;
         return false;
@@ -16,10 +15,10 @@ bool SaveFile::IsPropertyExists(std::string Property) {
 
 bool SaveFile::IsExeptable(char Char)
 {
-    return (isalnum(Char) != 0 || Char == ':' || Char == '-' || Char == '_');
+    return (isalnum(Char) != 0 || Char == ':' || Char == '-' || Char == '_' || Char == ' ' || Char == '.');
 }
 
-bool SaveFile::IsWordCorrect(std::string Word) {
+bool SaveFile::IsWordCorrect(const std::string& Word) {
     for (char CharValue : Word) {
         if (!IsExeptable(CharValue)) {
             std::cerr << "Error name! Uncorect char is: <" << CharValue << ">. Full string: <" << Word << ">" << std::endl;
@@ -41,16 +40,18 @@ bool SaveFile::DeleteProperty(std::string Property) {
     _Map.erase(Property);
     return true;
 }
-bool SaveFile::AddProperty(std::string Property)
+bool SaveFile::AddProperty(const std::string& Property)
 {
     if (!SaveFile::IsWordCorrect(Property)) {
         return false;
     }
-    _Map.insert(std::pair<std::string, std::string>(Property, ""));
+
+    _Map[Property] = std::string("");
+    
     return true;
 }
 
-bool SaveFile::SetProperty(std::string Property, std::string Value)
+bool SaveFile::SetProperty(const std::string& Property, const std::string& Value)
 {
     if (!SaveFile::IsPropertyExists(Property)) {
         return false;
@@ -59,13 +60,9 @@ bool SaveFile::SetProperty(std::string Property, std::string Value)
     return true;
 }
 
-bool SaveFile::MakeSave(std::string FilePath)
+bool SaveFile::MakeSave(const std::string& FilePath) 
 {
     std::ofstream fout(FilePath);
-    if (fout.fail()) {
-        std::cerr << "Cant opent file!" << '\n';
-        return false;
-    }
     for (auto const& info : _Map) {
         fout << '\'' << info.first << "':'" << info.second << "'\n";
     }
@@ -74,7 +71,7 @@ bool SaveFile::MakeSave(std::string FilePath)
 }
 // -> bool
 
-std::string SaveFile::Word(std::string string, size_t *position)
+std::string SaveFile::Word(const std::string& string, size_t *position)
 {
     if (string[*position] == '\'') {
         (*position)++;
@@ -83,7 +80,7 @@ std::string SaveFile::Word(std::string string, size_t *position)
     size_t indexFirst = *position;
 
 
-    while (SaveFile::IsExeptable(string[*position])) {
+    while (SaveFile::IsExeptable(string[*position]))  {
         (*position)++;
     }
 
@@ -99,19 +96,25 @@ std::string SaveFile::Word(std::string string, size_t *position)
     
     return word;
 }
-
-bool SaveFile::ReadSave(std::string FilePath)
+void SaveFile::PrintAllProperties() {
+    for (const auto& property: _Map) {
+        std::cout << property.first << std::endl;
+    }
+}
+bool SaveFile::ReadSave(const std::string& FilePath)
 {
     std::string string;
 
     std::ifstream file(FilePath);
 
     if (file.fail()) {
-        std::cerr << "Cant opent file!" << '\n';
+        std::cerr << "Cant opent file" << FilePath << '\n';
         return false;
     }
-
+    int index = 0;
     while (std::getline(file, string)) {
+        //std::cout << "Line: " << index;
+        index += 1;
         size_t indexSeparator = 0;
         std::string Propetry = Word(string, &indexSeparator);
 
@@ -127,6 +130,7 @@ bool SaveFile::ReadSave(std::string FilePath)
         }
 
         SaveFile::AddProperty(Propetry);
+        //std::cout << FilePath << " " << Propetry << std::endl;
         std::string Value = Word(string, &indexSeparator);
 
         if (Value == "") return false;
@@ -137,7 +141,7 @@ bool SaveFile::ReadSave(std::string FilePath)
     return true;
 }
 
-std::string SaveFile::ReadProperty(std::string Property)
+std::string SaveFile::ReadProperty(const std::string& Property)
 {
     if (!SaveFile::IsPropertyExists(Property)) {
         return "";
