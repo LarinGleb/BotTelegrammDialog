@@ -23,27 +23,11 @@ typedef enum botstate_t {
     BOTPARCE
 } StateBot;
 
-StateBot GetState(std::string State) {
-    if (State == "botfriend") {
-        return BOTFRIEND;
-    }
-    else if (State == "botreview") {
-        return BOTREVIEW;
-    }
-    else { 
-        return DEFAULT;
-    }
-}
-
-ActiveBot GetActive(std::string State) {
-    if (State == "active") {return EXIT;}
-    else {return EXIT;}
-}
-
 bool CheckIsCommnad(std::string Message) {
     return StringTools::startsWith(Message, "/list") | StringTools::startsWith(Message, "/start");
 }
-bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType) {
+
+bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType, StateBot *State, ReviewState * Review) {
     bot.getEvents().onCommand("start", [&bot, ActiveType](TgBot::Message::Ptr message) { 
         bot.getApi().sendMessage(message->chat->id, "Hi!");
         *ActiveType = ACTIVE;
@@ -56,6 +40,11 @@ bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType) {
         bot.getApi().sendMessage(message->chat->id, "Writing help");
     });
     
+
+    bot.getEvents().onCommand("review", [&bot, Review, State](TgBot::Message::Ptr message) {
+        *State = BOTREVIEW;
+        InitCommandsBotReview(bot, Review, message);
+    });
 
     return true;
 }
@@ -73,7 +62,7 @@ int main()
     
     SaveFile Save;
     ActiveBot MyState = ACTIVE;
-    StateBot BotState = BOTREVIEW;
+    StateBot BotState = DEFAULT;
     ReviewState BotReviewState = WAITING_COMMAND;
     Event *current_event = new Event();
 
@@ -98,7 +87,9 @@ int main()
         bot.getApi().sendMessage(message->chat->id, "Выберите бота: ", false, 0, keyboardBot);
     });
 
-    bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Price, &EatOrNo, &AddPodsk, &BotState, &conn](TgBot::CallbackQuery::Ptr query) {
+    InitCommandsBotMain(bot, &MyState, &BotState, &BotReviewState);
+
+    bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Prise, &EatOrNo, &AddPodsk, &BotState, &conn](TgBot::CallbackQuery::Ptr query) {
         if ((StringTools::startsWith(query->data, "AddNew")) || (StringTools::startsWith(query->data, "ToKnow"))){
             AddOrKnow = TDAddOrKnow(bot, query);
         }
@@ -147,6 +138,7 @@ int main()
                 break;
 
                 case BOTREVIEW:
+                    std::cout << BotReviewState << '\n';
                     switch (BotReviewState)
                     {
                     
