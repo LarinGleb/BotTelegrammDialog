@@ -26,7 +26,7 @@ class SaveFile {
         std::string ReadProperty(std::string Property);
 
         bool DeleteProperty(std::string Key);
-
+        StringMap GetMap() { return _Map;}
     private:
 
         std::string Word(std::string string, size_t * positon);
