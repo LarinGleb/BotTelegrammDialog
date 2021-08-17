@@ -20,9 +20,9 @@ bool InitBotTD(TgBot::Bot& bot, std::shared_ptr<TgBot::Message> message) {
 
     keyboard->inlineKeyboard.push_back(row0);
 
-    bot.getApi().sendMessage(message->chat->id, "Привет! Это модуль для тех, кто не знает, 
-    что можно подарить тайному другу, и для тех, кто хочет помочь справиться с этим другим. 
-    Итак, ты хочешь узнать подсказку или помочь другим, добавив свой вариант?", false, 0, keyboard);
+    bot.getApi().sendMessage(message->chat->id, "Привет! Это модуль для тех, кто не знает, "
+    "что можно подарить тайному другу, и для тех, кто хочет помочь справиться с этим другим." 
+    "Итак, ты хочешь узнать подсказку или помочь другим, добавив свой вариант?", false, 0, keyboard);
 
     return true;
 }

@@ -1,5 +1,6 @@
 #include "SaveFile.h"
-
+#include <iostream>
+#include <fstream>
 
 //====================
 //Erros Check
