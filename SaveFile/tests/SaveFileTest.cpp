@@ -23,7 +23,6 @@ TEST_F(TestSave, TestAddProperties) {
     ASSERT_TRUE(Save.AddProperty("1231313"));
     ASSERT_TRUE(Save.AddProperty("weferwe1231313"));
     ASSERT_TRUE(Save.AddProperty("DDDDDDDDDDDDqwwqwqw1231313"));
-    ASSERT_FALSE(Save.AddProperty("..__1231313"));
 
     std::cout << "\n";
 }
@@ -64,6 +63,21 @@ TEST_F(TestSave, TestReadMakePropertiesError) {
     std::cout << "\n";
 }
 
+TEST_F(TestSave, TestDelete) {
+    
+    SaveFile Save;
+
+    // std::cout << "\n --- Test Read and Save Properties --- " << "\n";
+
+    Save.AddProperty("1231313");
+    Save.SetProperty("1231313", "111");
+    
+    Save.DeleteProperty("1231313");
+
+    ASSERT_EQ(Save.ReadProperty("1231313"), "");
+
+    std::cout << "\n";
+}
 
 
 int main(int argc, char** argv) {
