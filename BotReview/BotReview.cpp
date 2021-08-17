@@ -57,18 +57,20 @@ bool DeleteEvent(Event eventDelete) {
     return true;
 }
 
-bool InitCommandsBotReview(TgBot::Bot &bot, ReviewState *BotState) {
+bool InitCommandsBotReview(TgBot::Bot &bot, ReviewState *BotState, TgBot::Message::Ptr message) {
 
     SaveFile Save{};
-
+    *BotState = WAITING_COMMAND;
     Save.ReadSave("../BotReview/Events/Events.txt");
         for (auto const & eventpair: Save.GetMap()) {
         Event *event = new Event(eventpair.first);
         event->ReadFromFile("../BotReview/Events/" + eventpair.second);
         ListEvents.push_back(event);
     }
-
+    
+    bot.getApi().sendMessage(message->chat->id, "Привет! Я бот для добавленния отзывов к мероприятиям. Команды: \n /addReview - добавит отзыв к мероприятию \n /readReviews - посмотреть отзывы об мероприятиях \n /list - выведет все мероприятия  \n (ТОЛЬКО ДЛЯ ПРЕПОДОВ) \n /addEvent - добавит мероприятие с  нужным названием \n /removeEvent - удалит мероприятие по имени. ВНИМАНИЕ. Навсегда. Со всеми отзывами.");
     bot.getEvents().onCommand("list", [&bot](TgBot::Message::Ptr message) {
+        
         SaveFile Save{};
         std::string Message = "Мероприятия: \n";
         int lineMessage = 1;
