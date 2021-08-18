@@ -1,4 +1,4 @@
-#include <stdio.h>
+
 #include <string>
 #include "SaveFile/SaveFile.h"
 #include "tgbot/tgbot.h"
@@ -7,7 +7,17 @@
 #include "BotReview/BotReview.cpp"
 #include <iostream>
 #include <experimental/filesystem>
-
+#include "bottimelib/BotTime.h"
+#include <ctime>
+timedifference diff;
+std::map <std::string,timedifference> timetable = {
+                            {"Lunch", {14,0}},
+                            {"Dinner", {19,0}},
+                            {"Breakfast", {9,0}},
+                            {"Event1", {17,0}},
+                            {"Event2", {20,0}}
+                            };
+                            
 typedef enum activestate_t {
     EXIT,
     ACTIVE
@@ -32,11 +42,11 @@ bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType, StateBot *State
         bot.getApi().sendMessage(message->chat->id, "Hi!");
         *ActiveType = ACTIVE;
     });
-    bot.getEvents().onCommand("exit", [&bot, ActiveType](TgBot::Message::Ptr message) { 
+    bot.getEvents().onCommand("exit", [&bot, ActiveType](TgBot::Message::Ptr message) {
         bot.getApi().sendMessage(message->chat->id, "Good!");
         *ActiveType = EXIT;
     });
-    bot.getEvents().onCommand("help", [&bot](TgBot::Message::Ptr message) { 
+    bot.getEvents().onCommand("help", [&bot](TgBot::Message::Ptr message) {
         bot.getApi().sendMessage(message->chat->id, "Writing help");
     });
     
@@ -82,6 +92,59 @@ int main()
     TgBot::InlineKeyboardButton::Ptr ButtonBOTPARCE(new TgBot::InlineKeyboardButton);
     TgBot::InlineKeyboardButton::Ptr ButtonBOTFRIEND(new TgBot::InlineKeyboardButton);
 
+    TgBot::InlineKeyboardMarkup::Ptr timekeyboard(new TgBot::InlineKeyboardMarkup);
+    TgBot::InlineKeyboardMarkup::Ptr deathkeyboard(new TgBot::InlineKeyboardMarkup);
+
+    std::vector<TgBot::InlineKeyboardButton::Ptr> row0;
+    std::vector<TgBot::InlineKeyboardButton::Ptr> row1;
+    std::vector<TgBot::InlineKeyboardButton::Ptr> deathrow;
+
+    TgBot::InlineKeyboardButton::Ptr death(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr breakfast(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr lunch(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr dinner(new TgBot::InlineKeyboardButton);
+
+    TgBot::InlineKeyboardButton::Ptr event1(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr event2(new TgBot::InlineKeyboardButton);
+
+    death->text = "с̶̪̈́̓̀̕ͅм̸̨̛̟̦̞͙̫̳͋̆͐̓̃̏̋̈́е̴̣̼̭̰̠̪̼̭͇͉̿̅р̷̼̤͍̳̔͌̄͋̈́̓́́̀̈̿͂̿̚͜т̷̛͍̭̣͎̋͒̽͂͒̔̓͆̌͌̾̈́͝ь̸̡̩̲̟̠͔͍̜̲̬̼̮̍̂͐͑͋̎̑͐́̆͋̚̚̕ͅ";
+    death->callbackData = "death";
+
+    breakfast->text = "завтрак";
+    breakfast->callbackData = "breakfast";
+
+    lunch->text = "обед";
+    lunch->callbackData = "lunch";
+
+    dinner->text = "ужин";
+    dinner->callbackData = "dinner";
+
+    event1->text = "мероприятие 1";
+    event1->callbackData = "event1";
+
+    event2->text = "мероприятие 2";
+    event2->callbackData = "event2";
+
+    row0.push_back(breakfast);
+    row0.push_back(lunch);
+    row0.push_back(dinner);
+    row1.push_back(event1);
+    row1.push_back(event2);
+
+    deathrow.push_back(death);
+
+    timekeyboard->inlineKeyboard.push_back(row0);
+    timekeyboard->inlineKeyboard.push_back(row1);
+
+    deathkeyboard->inlineKeyboard.push_back(deathrow);
+    
+    InitCommandsBotMain(bot, &MyState);
+
+
+
+    bot.getEvents().onCommand("time", [&bot, &timekeyboard](TgBot::Message::Ptr message) {
+        bot.getApi().sendMessage(message->chat->id, "Выберите событие, время до которого вы хотите узнать:", false, 0, timekeyboard, "Markdown");
+    });
     
     bot.getEvents().onCommand("moduls", [&bot, &BotState, &keyboardBot](TgBot::Message::Ptr message) { 
         bot.getApi().sendMessage(message->chat->id, "Выберите бота: ", false, 0, keyboardBot);
@@ -111,13 +174,58 @@ int main()
                 BotState = DEFAULT;
             }
         }
+        if (StringTools::startsWith(query->data, "death"))
+        {
+            std::string response = "0̸͙̰̫͓͉͍͔̹̘̤̗̐̄̓̑̍̇̽̓̏̔͋̋̈͌̕̚̚͠ ӵ̸̢̧̯͈͔̘̩͙̺͙̌͂̈́̈́̑̌. 0̸͙̰̫͓͉͍͔̹̘̤̗̐̄̓̑̍̇̽̓̏̔͋̋̈͌̕̚̚͠ м̶̨͔̺̮̯̮̾͒̂͒̍̓̏͛͌̕и̵̬̗̞͖̻̤̫̩̼͕͍̰͕̩͙̾̅͝н̶̡̥͍̫̬̬̺̺͇̪̗̘͚͎̥͙͖̑̒̆͗͊̈́̀̅̈́̚.";
+            bot.getApi().sendMessage(query->message->chat->id, response , false, 0, deathkeyboard, "Markdown");    
+        }  
+
+        if (StringTools::startsWith(query->data, "breakfast"))
+        {
+            diff = HandleTime(timetable["Breakfast"]);
+            std::string response = "Времени до завтрака: \n" + std::to_string(diff.hoursdiff) + " ч. " + std::to_string(diff.minutesdiff) + " мин.";
+            bot.getApi().sendMessage(query->message->chat->id, response , false, 0, timekeyboard, "Markdown");      
+        }
+        if (StringTools::startsWith(query->data, "lunch"))
+        {
+            diff = HandleTime(timetable["Lunch"]);
+            std::string response = "Времени до обеда: \n" + std::to_string(diff.hoursdiff) + " ч. " + std::to_string(diff.minutesdiff) + " мин.";
+            bot.getApi().sendMessage(query->message->chat->id, response , false, 0, timekeyboard, "Markdown");        
+        }
+        if (StringTools::startsWith(query->data, "event1"))
+        {
+            diff = HandleTime(timetable["Event1"]);
+            std::string response = "Времени до мероприятия 1: \n" + std::to_string(diff.hoursdiff) + " ч. " + std::to_string(diff.minutesdiff) + " мин.";
+            bot.getApi().sendMessage(query->message->chat->id, response , false, 0, timekeyboard, "Markdown");        
+        }
+        if (StringTools::startsWith(query->data, "event2"))
+        {
+            diff = HandleTime(timetable["Event2"]);
+            std::string response = "Времени до мероприятия 2: \n" + std::to_string(diff.hoursdiff) + " ч. " + std::to_string(diff.minutesdiff) + " мин.";
+            bot.getApi().sendMessage(query->message->chat->id, response , false, 0, timekeyboard, "Markdown");        
+        }
+        if (StringTools::startsWith(query->data, "dinner"))
+        {
+            diff = HandleTime(timetable["Dinner"]);
+            std::string response = "Времени до ужина: \n" + std::to_string(diff.hoursdiff) + " ч. " + std::to_string(diff.minutesdiff) + " мин.";
+            bot.getApi().sendMessage(query->message->chat->id, response , false, 0, timekeyboard, "Markdown");  
+        }
 
     });
-
+    bot.getEvents().onCommand("death", [&bot, &deathkeyboard](TgBot::Message::Ptr message) {
+        bot.getApi().sendMessage(message->chat->id, "Ӧ̵̧̲͖͉̫̻̥̺͈͚̣̪́Б̵̡̙̦̤̏̊́̎̓̀̊̉͆͋̀̀Р̴̧̨̺͙̮͙̩̰̭̥̙͚̜̝̐̾̈́̅̊̿̈́̓̔̆̅̍̈́͛̕͠Е̷̲̺̖̼̩̹͓̐̐̐͂̂̂Ч̶̡̼̣̣̟͖̭̣̯̦͐͊́͌͐̓̉̏̍̃͗̆̄̓̄̚ͅЁ̴̛̣̬̳͍͓̳͎̺̩͌̀̈̃̅̌̓͜ͅН̵̲̘̳̟̖̱͛͌̉͑́͑͆͒̀̄̿̕͝͠", false, 0, deathkeyboard, "Markdown");
+    });
 
     bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn, &BotReviewState, current_event](TgBot::Message::Ptr message)    {
         switch (MyState)
-        {
+    
+
+    bot.getEvents().onCallbackQuery([&bot, &deathkeyboard, &timekeyboard](TgBot::CallbackQuery::Ptr query) {
+        
+     });
+
+    bot.getEvents().onAnyMessage([&bot, BotState, MyState](TgBot::Message::Ptr message) {
+        switch (MyState) {
         case ACTIVE:
             switch(BotState) {
                 case BOTFRIEND: 
@@ -245,7 +353,8 @@ int main()
                 case BOTPARCE: // for sasha
                 break;
 
-                case BOTTIME: // for valya
+            case BOTTIME: // for valya
+
                 break;
 
                 case DEFAULT:
@@ -257,7 +366,6 @@ int main()
         default:
             break;
         }
-        
     });
 
     bot.getEvents().onCommand("friend", [&bot, &BotState](TgBot::Message::Ptr message) { 
@@ -266,11 +374,10 @@ int main()
     });
 
     TgBot::TgLongPoll longPoll(bot);
-    while (true)
-    {
+    while (true) {
         printf("Long poll started\n");
         longPoll.start();
     }
-    
+
     return 0;
 }
