@@ -66,7 +66,7 @@ std::string TDAddOrKnow(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
 
 std::string TDSex(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
 
-    TgBot::InlineKeyboardMarkup::Ptr keyboardPrise(new TgBot::InlineKeyboardMarkup);
+    TgBot::InlineKeyboardMarkup::Ptr keyboardPrice(new TgBot::InlineKeyboardMarkup);
     std::vector<TgBot::InlineKeyboardButton::Ptr> row2;
 
     TgBot::InlineKeyboardButton::Ptr Free(new TgBot::InlineKeyboardButton);
@@ -84,20 +84,20 @@ std::string TDSex(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
     Average->callbackData = "Average";
     row2.push_back(Average);
 
-    keyboardPrise->inlineKeyboard.push_back(row2);
+    keyboardPrice->inlineKeyboard.push_back(row2);
     
     if(StringTools::startsWith(query->data, "ForBoy")){ 
-        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrise, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrice, "Markdown");
         return "Boy";
     }
 
     else if(StringTools::startsWith(query->data, "ForGirl")){ 
-        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrise, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrice, "Markdown");
         return "Girl";
     }
 
     else if(StringTools::startsWith(query->data, "ForAll")){ 
-        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrise, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrice, "Markdown");
         return "All";
     }
 
@@ -105,7 +105,7 @@ std::string TDSex(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
 }
 
 
-std::string TDPrise(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
+std::string TDPrice(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
 
     TgBot::InlineKeyboardMarkup::Ptr keyboardEat(new TgBot::InlineKeyboardMarkup);
     std::vector<TgBot::InlineKeyboardButton::Ptr> row3;
@@ -139,7 +139,7 @@ std::string TDPrise(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
 }
 
 
-std::string TDEatOrNo(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
+bool TDEatOrNo(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
 
     TgBot::InlineKeyboardMarkup::Ptr keyboardEat(new TgBot::InlineKeyboardMarkup);
     std::vector<TgBot::InlineKeyboardButton::Ptr> row3;
@@ -157,10 +157,10 @@ std::string TDEatOrNo(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
     keyboardEat->inlineKeyboard.push_back(row3);
 
     if(StringTools::startsWith(query->data, "Eat")) {
-        return "Eat";
+        return 1;
     }
     else if(StringTools::startsWith(query->data, "NoEat")) {
-        return "NoEat";
+        return 0;
     }
 
     return "error";
