@@ -138,7 +138,6 @@ int main()
                 break;
 
                 case BOTREVIEW:
-                    std::cout << BotReviewState << '\n';
                     switch (BotReviewState)
                     {
                     
