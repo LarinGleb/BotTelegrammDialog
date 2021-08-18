@@ -44,7 +44,6 @@ namespace db_api {
 
         }
 
-    }
 
 void Connector::SearchDescriptions(const std::string CITY_, const TgBot::Message::Ptr& message, const TgBot::Bot& bot) {
     bool fl = false;
@@ -62,5 +61,5 @@ void Connector::SearchDescriptions(const std::string CITY_, const TgBot::Message
         bot.getApi().sendMessage(message->chat->id, "Сори, инфы нет");
     }
     delete(res);
-    }
+}
 };

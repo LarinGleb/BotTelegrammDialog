@@ -2,6 +2,7 @@
 #include <string>
 #include "SaveFile/SaveFile.h"
 #include "LibDB/DB.h"
+#include "ForTD/PPForTD.h"
 #include "BotReview/BotReview.cpp"
 #include <iostream>
 #include <experimental/filesystem>
@@ -59,6 +60,10 @@ bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType, StateBot *State
         bot.getApi().sendMessage(message->chat->id, "Writing help");
     });
     
+    bot.getEvents().onCommand("friend", [&bot, &State](TgBot::Message::Ptr message) { 
+        *State = BOTFRIEND;
+        InitBotTD(bot, message);
+    });
 
     bot.getEvents().onCommand("review", [&bot, Review, State](TgBot::Message::Ptr message) {
         *State = BOTREVIEW;
@@ -75,9 +80,6 @@ int main()
     std::string Price;
     bool EatOrNo;
     std::string AddPodsk;
-    const std::string username = "psny";
-    const std::string hostname = "192.168.88.240";
-    const std::string password = "12345678";
     
     SaveFile Save;
     ActiveBot MyState = ACTIVE;
@@ -136,6 +138,9 @@ int main()
         {
             ButtonMAINSIGHTS(bot, query);
         }
+        else if ((StringTools::startsWith(query->data, "ForBoy")) || (StringTools::startsWith(query->data, "ForGirl")) || (StringTools::startsWith(query->data, "ForAll"))){ 
+            Sex = TDSex(bot, query);
+        }
         else if((StringTools::startsWith(query->data, "Free")) || (StringTools::startsWith(query->data, "NoMuch")) || (StringTools::startsWith(query->data, "Average"))){
             Price = TDPrice(bot, query);
         }
@@ -150,6 +155,7 @@ int main()
 
                 BotState = DEFAULT;
             }
+        }
         else if (StringTools::startsWith(query->data, "DEFAULT"))
         {
             ButtonEND(bot, query);
@@ -167,7 +173,7 @@ int main()
     });
 
 
-    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn, &BotReviewState, current_event, &BotStateGuide, &keyboard2](TgBot::Message::Ptr message)    {
+    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn, &BotReviewState, current_event, &BotStateGuide](TgBot::Message::Ptr message)    {
         switch (MyState)
         {
         case ACTIVE:

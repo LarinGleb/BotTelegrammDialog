@@ -30,6 +30,7 @@ target_link_libraries(echobot SaveLib)
 target_link_libraries(echobot LibDB)
 target_link_libraries(echobot ReviewLib)
 target_link_libraries(echobot dirVlad)
+target_link_libraries(echobot ForTD)
 
 
 include_directories(/usr/local/include ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
