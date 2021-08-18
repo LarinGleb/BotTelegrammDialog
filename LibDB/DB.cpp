@@ -44,4 +44,22 @@ namespace db_api {
 
         }
 
+
+void Connector::SearchDescriptions(const std::string CITY_, const TgBot::Message::Ptr& message, const TgBot::Bot& bot) {
+    bool fl = false;
+    std::stringstream sql_request;
+    sql_request.str("");
+    sql_request << "SELECT Descriptions FROM rpnac5.DirVladDescription WHERE Town = \"" << CITY_ << "\"";
+    sql::ResultSet* res = stmt_->executeQuery(sql_request.str().c_str());
+    std::string c;
+    while (res->next()) {
+        fl = false;
+        c = res->getString(1);
+        bot.getApi().sendMessage(message->chat->id, c);
     }
+    if (fl) {
+        bot.getApi().sendMessage(message->chat->id, "Сори, инфы нет");
+    }
+    delete(res);
+}
+};

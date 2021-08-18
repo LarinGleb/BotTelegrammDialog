@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <string>
 #include "SaveFile/SaveFile.h"
-#include "tgbot/tgbot.h"
-#include "ForTD/PPForTD.h"
 #include "LibDB/DB.h"
+#include "ForTD/PPForTD.h"
 #include "BotReview/BotReview.cpp"
 #include <iostream>
 #include <experimental/filesystem>
+#include "dirVlad/bot_guide.h"
+#include "tgbot/tgbot.h"
+
 
 typedef enum activestate_t {
     EXIT,
@@ -23,8 +25,26 @@ typedef enum botstate_t {
     BOTPARCE
 } StateBot;
 
+enum BotGuideState {
+    BOTGUIDE_DEFAULT,
+    BOTGUIDE_AWAITING_FOR_AN_ANSWER_CITY,
+    BOTGUIDE_D
+};
+
 bool CheckIsCommnad(std::string Message) {
     return StringTools::startsWith(Message, "/list") | StringTools::startsWith(Message, "/start");
+}
+
+StateBot GetState(std::string State) {
+    if (State == "botfriend") {
+        return BOTFRIEND;
+    }
+    else if (State == "botreview") {
+        return BOTREVIEW;
+    }
+    else { 
+        return DEFAULT;
+    }
 }
 
 bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType, StateBot *State, ReviewState * Review) {
@@ -40,6 +60,10 @@ bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType, StateBot *State
         bot.getApi().sendMessage(message->chat->id, "Writing help");
     });
     
+    bot.getEvents().onCommand("friend", [&bot, &State](TgBot::Message::Ptr message) { 
+        *State = BOTFRIEND;
+        InitBotTD(bot, message);
+    });
 
     bot.getEvents().onCommand("review", [&bot, Review, State](TgBot::Message::Ptr message) {
         *State = BOTREVIEW;
@@ -56,44 +80,65 @@ int main()
     std::string Price;
     bool EatOrNo;
     std::string AddPodsk;
-    const std::string username = "psny";
-    const std::string hostname = "192.168.88.240";
-    const std::string password = "12345678";
     
     SaveFile Save;
     ActiveBot MyState = ACTIVE;
     StateBot BotState = DEFAULT;
+    BotGuideState BotStateGuide = BOTGUIDE_DEFAULT;
     ReviewState BotReviewState = WAITING_COMMAND;
     Event *current_event = new Event();
 
     Save.ReadSave("../BotSettings.txt");
     TgBot::Bot bot(Save.ReadProperty("Token"));
+    const std::string username = "psny";
+    const std::string hostname = "192.168.88.240";
+    const std::string password = "12345678";
+    
 
     db_api::Connector conn(hostname.c_str(), username.c_str(), password.c_str(), "rpnac5");
 
     InitCommandsBotMain(bot, &MyState, &BotState, &BotReviewState);
 
-    TgBot::InlineKeyboardMarkup::Ptr keyboardBot(new TgBot::InlineKeyboardMarkup);
-    std::vector<TgBot::InlineKeyboardButton::Ptr> row0;
-
-    TgBot::InlineKeyboardButton::Ptr ButtonBOTGUIDE(new TgBot::InlineKeyboardButton);
-    TgBot::InlineKeyboardButton::Ptr ButtonBOTTIME(new TgBot::InlineKeyboardButton);
-    TgBot::InlineKeyboardButton::Ptr ButtonBOTREVIEW(new TgBot::InlineKeyboardButton);
-    TgBot::InlineKeyboardButton::Ptr ButtonBOTPARCE(new TgBot::InlineKeyboardButton);
-    TgBot::InlineKeyboardButton::Ptr ButtonBOTFRIEND(new TgBot::InlineKeyboardButton);
-
     
-    bot.getEvents().onCommand("moduls", [&bot, &BotState, &keyboardBot](TgBot::Message::Ptr message) { 
-        bot.getApi().sendMessage(message->chat->id, "Выберите бота: ", false, 0, keyboardBot);
+
+    TgBot::InlineKeyboardMarkup::Ptr keyboard(new TgBot::InlineKeyboardMarkup);
+    std::vector<TgBot::InlineKeyboardButton::Ptr> rowCHOICE;
+    TgBot::InlineKeyboardButton::Ptr checkButtonTOWN(new TgBot::InlineKeyboardButton);
+    TgBot::InlineKeyboardButton::Ptr checkButtonMAINSIGHTS(new TgBot::InlineKeyboardButton);
+    checkButtonTOWN->text = "1";
+    checkButtonTOWN->callbackData = "Choice...TOwn";
+    checkButtonMAINSIGHTS->text = "2";
+    checkButtonMAINSIGHTS->callbackData = "mainsights";
+    rowCHOICE.push_back(checkButtonTOWN);
+    rowCHOICE.push_back(checkButtonMAINSIGHTS);
+    keyboard->inlineKeyboard.push_back(rowCHOICE);
+
+    bot.getEvents().onCommand("sights", [&bot, &keyboard, &BotState](TgBot::Message::Ptr message) { 
+        BotState = BOTGUIDE;
+        bot.getApi().sendMessage(message->chat->id, "Привет, я бот-гид. Я могу показать тебе разные достопримечательности России. Чтобы узнать о главных достопримечательностей какого-то города, нажми 1, а если ты турист и не знаешь что посетить, то нажми 2", false, 0, keyboard);
+        
     });
 
     InitCommandsBotMain(bot, &MyState, &BotState, &BotReviewState);
 
-    bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Price, &EatOrNo, &AddPodsk, &BotState, &conn](TgBot::CallbackQuery::Ptr query) {
+    bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Price, &EatOrNo, &AddPodsk, &BotState, &conn, &BotStateGuide, &keyboard](TgBot::CallbackQuery::Ptr query) {
         if ((StringTools::startsWith(query->data, "AddNew")) || (StringTools::startsWith(query->data, "ToKnow"))){
             AddOrKnow = TDAddOrKnow(bot, query);
+        } 
+        else if (StringTools::startsWith(query->data, "Choice...TOwn")) {
+            std::string response = "Напиши город, о котором ты хочешь узнать...";
+            bot.getApi().sendMessage(query->message->chat->id, response);
+            if (BotStateGuide == BOTGUIDE_D) {
+                ButtonTOWN(bot, query);
+            }  
+            BotStateGuide = BOTGUIDE_AWAITING_FOR_AN_ANSWER_CITY;
+                      
         }
-        else if((StringTools::startsWith(query->data, "ForBoy")) || (StringTools::startsWith(query->data, "ForGirl")) || (StringTools::startsWith(query->data, "ForAll"))){ 
+        else if (StringTools::startsWith(query->data, "mainsights")) 
+        {
+            ButtonMAINSIGHTS(bot, query);
+        }
+        else if ((StringTools::startsWith(query->data, "ForBoy")) || (StringTools::startsWith(query->data, "ForGirl")) || (StringTools::startsWith(query->data, "ForAll"))){ 
             Sex = TDSex(bot, query);
         }
         else if((StringTools::startsWith(query->data, "Free")) || (StringTools::startsWith(query->data, "NoMuch")) || (StringTools::startsWith(query->data, "Average"))){
@@ -111,17 +156,29 @@ int main()
                 BotState = DEFAULT;
             }
         }
-
+        else if (StringTools::startsWith(query->data, "DEFAULT"))
+        {
+            ButtonEND(bot, query);
+            BotStateGuide = BOTGUIDE_DEFAULT;
+        }
+        else if (StringTools::startsWith(query->data, "OtherTown"))
+        {
+            std::string response = "Напиши город, о котором ты хочешь узнать...";
+            bot.getApi().sendMessage(query->message->chat->id, response);
+            BotStateGuide = BOTGUIDE_AWAITING_FOR_AN_ANSWER_CITY;
+            if (BotStateGuide == BOTGUIDE_D) {
+                ButtonTOWN(bot, query);
+            } 
+        }
     });
 
 
-    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn, &BotReviewState, current_event](TgBot::Message::Ptr message)    {
+    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn, &BotReviewState, current_event, &BotStateGuide](TgBot::Message::Ptr message)    {
         switch (MyState)
         {
         case ACTIVE:
             switch(BotState) {
                 case BOTFRIEND: 
-                    InitBotTD(bot, message);
                 break;
 
                 case BOTFRIENDADD: {
@@ -130,13 +187,19 @@ int main()
                     conn.AddPo(AddPodsk, Sex, Price, EatOrNo, message, bot);
 
                     BotState = DEFAULT;
-
-                    break;
                 }
-
-                case BOTGUIDE: // for vlad
                 break;
 
+                case BOTGUIDE: { // for vlad
+                    switch(BotStateGuide) {
+                        case BOTGUIDE_AWAITING_FOR_AN_ANSWER_CITY: {
+                            conn.SearchDescriptions(message->text.c_str(), message, bot);
+                            BotStateGuide = BOTGUIDE_D;
+                            break;
+                        }
+                    }
+                }
+                break;
                 case BOTREVIEW:
                     switch (BotReviewState)
                     {
@@ -242,10 +305,10 @@ int main()
                 }
                 break;
 
-                case BOTPARCE: // for sasha
+                case BOTPARCE:
                 break;
 
-                case BOTTIME: // for valya
+                case BOTTIME:
                 break;
 
                 case DEFAULT:
@@ -258,11 +321,6 @@ int main()
             break;
         }
         
-    });
-
-    bot.getEvents().onCommand("friend", [&bot, &BotState](TgBot::Message::Ptr message) { 
-        BotState = BOTFRIEND;
-        InitBotTD(bot, message);
     });
 
     TgBot::TgLongPoll longPoll(bot);
