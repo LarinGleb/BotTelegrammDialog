@@ -5,6 +5,7 @@
 #include "ForTD/PPForTD.h"
 #include "LibDB/DB.h"
 
+
 typedef enum activestate_t {
     EXIT,
     ACTIVE
@@ -59,8 +60,8 @@ int main()
 {
     std::string AddOrKnow;
     std::string Sex;
-    std::string Prise;
-    std::string EatOrNo;
+    std::string Price;
+    bool EatOrNo;
     std::string AddPodsk;
     const std::string username = "psny";
     const std::string hostname = "192.168.88.240";
@@ -90,7 +91,7 @@ int main()
         bot.getApi().sendMessage(message->chat->id, "Выберите бота: ", false, 0, keyboardBot);
     });
 
-     bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Prise, &EatOrNo, &AddPodsk, &BotState](TgBot::CallbackQuery::Ptr query) {
+    bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Price, &EatOrNo, &AddPodsk, &BotState, &conn](TgBot::CallbackQuery::Ptr query) {
         if ((StringTools::startsWith(query->data, "AddNew")) || (StringTools::startsWith(query->data, "ToKnow"))){
             AddOrKnow = TDAddOrKnow(bot, query);
         }
@@ -98,7 +99,7 @@ int main()
             Sex = TDSex(bot, query);
         }
         else if((StringTools::startsWith(query->data, "Free")) || (StringTools::startsWith(query->data, "NoMuch")) || (StringTools::startsWith(query->data, "Average"))){
-            Prise = TDPrise(bot, query);
+            Price = TDPrice(bot, query);
         }
         else if((StringTools::startsWith(query->data, "Eat")) || (StringTools::startsWith(query->data, "NoEat"))){
             EatOrNo = TDEatOrNo(bot, query);
@@ -107,7 +108,8 @@ int main()
                 TDAddPodsk(bot, query);
             }
             else{
-                //выдать что-то из бд
+                conn.KnowPo(Sex, Price, EatOrNo, query->message, bot);
+
                 BotState = DEFAULT;
             }
         }
@@ -115,7 +117,7 @@ int main()
     });
 
 
-    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Prise, &EatOrNo](TgBot::Message::Ptr message)    {
+    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn](TgBot::Message::Ptr message)    {
         switch (MyState)
         {
         case ACTIVE:
@@ -124,11 +126,15 @@ int main()
                     InitBotTD(bot, message);
                 break;
 
-                case BOTFRIENDADD:
+                case BOTFRIENDADD: {
                     AddPodsk = message->text;
-                    //добавить в бд
+
+                    conn.AddPo(AddPodsk, Sex, Price, EatOrNo, message, bot);
+
                     BotState = DEFAULT;
 
+                    break;
+                }
 
                 case BOTGUIDE: // for vlad
                 break;

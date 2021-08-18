@@ -9,6 +9,7 @@
 
 #include <jdbc.h>
 #include <xdevapi.h>
+#include "tgbot/tgbot.h"
 
 
 namespace db_api {
@@ -30,6 +31,7 @@ class Connector {
             con_->setSchema(db_name);
 
             stmt_ = con_->createStatement();
+
         } catch (sql::SQLException& e) {
             std::cerr << "# ERR: SQLException in " << __FILE__;
             std::cerr << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;
@@ -47,6 +49,9 @@ class Connector {
         delete stmt_;
         delete con_;
     }
+
+    void AddPo(const std::string& AddPodsk, const std::string Sex,const std::string Price, const bool EatOrNo, const TgBot::Message::Ptr& message, TgBot::Bot& bot);
+    void KnowPo(const std::string Sex, const std::string Price, const bool EatOrNo, const TgBot::Message::Ptr& message, const TgBot::Bot& bot);
 
   private:
     sql::Driver*     driver_;
