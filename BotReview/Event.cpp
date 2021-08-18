@@ -9,7 +9,7 @@ bool Event::Rename(std::string Name) {
 }
 
 bool Event::ReadFromFile(std::string Path) {
-    Save.ReadSave(Path);
+    Save.ReadSave(Path, RUSSION);
     m_CountReviews = Save.GetMap().size();
     ///for (int i = 0; i < m_CountReviews; i ++) {
       //  std::cout << Path << ": " << Save._Properties[i] << " ";
@@ -18,7 +18,7 @@ bool Event::ReadFromFile(std::string Path) {
 }
 
 bool Event::SaveEvent(std::string Name) {
-    return Save.MakeSave("../BotReview/Events/" + Name + ".txt");
+    return Save.MakeSave("../BotReview/Events/" + Name + ".txt", RUSSION);
 }
 bool Event::AddReview(std::string Review) {
     m_CountReviews += 1;
@@ -26,16 +26,11 @@ bool Event::AddReview(std::string Review) {
         return false;
     }
     
-    Save.SetProperty("Review " + std::to_string(m_CountReviews), Review);
+    Save.SetProperty("Review " + std::to_string(m_CountReviews), Review, RUSSION);
     
     return true;
 }
 
-void Event::PrintAllRevies() {
-    for(auto const & review: Save.GetMap()) {
-        std::cout << review.first << " : " << review.second << "\n";
-    }
-}
 bool Event::RemoveReview(std::string ID) {
     return Save.DeleteProperty("Review " + ID + ":");
 }

@@ -5,40 +5,51 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <wctype.h>
+
 //====================
 //Erros Check
 
-bool SaveFile::IsPropertyExists(const std::string& Property) {
+std::wstring SaveFile::ConvertToWstring(const std::string string, const char * locate) {
+    setlocale(LC_CTYPE, locate);
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
+    std::wstring ws = converter.from_bytes(string);
+    return ws;
+
+}
+std::string SaveFile::ConvertTostring(const std::wstring string, const char * locate) {
+    setlocale(LC_CTYPE, locate);
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+    return converter.to_bytes(string);
+
+}
+
+bool SaveFile::IsPropertyExists(const std::wstring& Property, const char * locate) {
+    setlocale(LC_CTYPE, locate);
     if (_Map.find(Property) == _Map.end()) {
-        std::cerr << "The given key does not exist! Key: " << Property << std::endl;
+        std::cerr << "The given key does not exist! Key: " << ConvertTostring(Property, locate) << std::endl;
         return false;
     }
     return true;
 }
-std::string ToLowerNoSpaces(const std::string& str) {
-    setlocale(LC_CTYPE, "ru_RU.UTF-8");
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-    std::wstring ws = converter.from_bytes(str);
-    std::transform(ws.begin(), ws.end(), ws.begin(), std::bind2nd(std::ptr_fun(&std::tolower<wchar_t>), std::locale("ru_RU.UTF-8")));
+// "ru_RU.UTF-8"
 
-    // std::remove_if(ws.begin(), ws.end(), isspace);
-    ws.erase(std::remove(ws.begin(), ws.end(), L' '), ws.end());
-    ws.erase(std::remove(ws.begin(), ws.end(), L'\t'), ws.end());
-    ws.erase(std::remove(ws.begin(), ws.end(), L'\n'), ws.end());
-    ws.erase(std::remove(ws.begin(), ws.end(), L'\r'), ws.end());
-
-    return converter.to_bytes(ws);
-}
-
-bool SaveFile::IsExeptable(char Char)
+bool SaveFile::IsAcceptable(wchar_t wchar, const char * locate)
 {
-    return (isalnum(Char) != 0 || Char == ':' || Char == '-' || Char == '_' || Char == ' ' || Char == '.');
+    setlocale(LC_CTYPE, locate);
+    return (iswalnum(wchar) != 0 && wchar == L':' && wchar == L'-' && wchar == L'_' && wchar == L'.' && wchar == L' ' && wchar == L'!' && wchar == L'?');
+    
 }
 
-bool SaveFile::IsWordCorrect(const std::string& Word) {
-    for (char CharValue : Word) {
-        if (!IsExeptable(CharValue)) {
-            std::cerr << "Error name! Uncorect char is: <" << CharValue << ">. Full string: <" << Word << ">" << std::endl;
+
+bool SaveFile::IsWordCorrect(const std::wstring Word, const char * locate) {
+
+
+    setlocale(LC_CTYPE, locate);
+
+    for (const auto& wchar : Word) {
+        if (!IsAcceptable(wchar, locate)) {
+            std::cerr << "Error name! Uncorect char is: <" << (char)wchar << ">. Full string: <" << ConvertTostring(Word, locate) << ">" << std::endl;
             return false;
         }
     }
@@ -50,75 +61,76 @@ bool SaveFile::IsWordCorrect(const std::string& Word) {
 // Working with Properties
 
 
-bool SaveFile::DeleteProperty(std::string Property) {
-    if (!SaveFile::IsPropertyExists(Property)) {
+bool SaveFile::DeleteProperty(std::string Property, const char * locale) {
+    setlocale(LC_CTYPE, locale);
+    if (!SaveFile::IsPropertyExists(ConvertToWstring(Property, locale), locale)) {
         return false;
     }
-    _Map.erase(Property);
+    _Map.erase(ConvertToWstring(Property, locale));
     return true;
 }
-bool SaveFile::AddProperty(const std::string& Property)
+bool SaveFile::AddProperty(const std::string& Property, const char * locale)
 {
-    if (!SaveFile::IsWordCorrect(Property)) {
+    setlocale(LC_CTYPE, locale);
+    if (!SaveFile::IsWordCorrect(ConvertToWstring(Property, locale), locale)) {
         return false;
     }
 
-    _Map[Property] = std::string("");
+    _Map[ConvertToWstring(Property, locale)] = std::wstring(L"");
     
     return true;
 }
 
-bool SaveFile::SetProperty(const std::string& Property, const std::string& Value)
+bool SaveFile::SetProperty(const std::string& Property,const std::string& Value, const char * locate_second, const char * locate_first)
 {
-    if (!SaveFile::IsPropertyExists(Property)) {
+    if (!SaveFile::IsPropertyExists(ConvertToWstring(Property, locate_first), locate_first)) {
         return false;
     }
-    _Map[Property] = Value;
+    _Map[ConvertToWstring(Property, locate_first)] = ConvertToWstring(Value, locate_second);
     return true;
 }
 
-bool SaveFile::MakeSave(const std::string& FilePath) 
+bool SaveFile::MakeSave(const std::string& FilePath, const char * locate_first, const char * locate_second) 
 {
+    
     std::ofstream fout(FilePath);
     for (auto const& info : _Map) {
-        fout << '\'' << info.first << "':'" << info.second << "'\n";
+        fout << '\'' << ConvertTostring(info.first, locate_first) << "':'" << ConvertTostring(info.second, locate_second) << "'\n";
     }
     fout.close();
     return true;
 }
 // -> bool
 
-std::string SaveFile::Word(const std::string& string, size_t *position)
+std::wstring SaveFile::Word(const std::wstring& string, size_t *position, const char * locate)
 {
-    if (string[*position] == '\'') {
+    setlocale(LC_CTYPE, locate);
+
+    if (string[*position] == L'\'') {
         (*position)++;
-    } else {std::cout << "Error in file format. Missing leading <'> in " << string << " at position " << *position << ", string[*position] = <" << string[*position] << ">" <<  std::endl; return "";}
+    } else {
+        std::cout << "Error in file format. Missing leading <'> in " << ConvertTostring(string, locate) << " at position " << *position << ", string[*position] = <" << string[*position] << ">" <<  std::endl; return L"";
+    }
 
     size_t indexFirst = *position;
 
 
-    while (SaveFile::IsExeptable(string[*position]))  {
+    while (SaveFile::IsAcceptable(string[*position], locate))  {
         (*position)++;
     }
 
-    if (string[*position] == '\'') {
+    if (string[*position] == L'\'') {
         (*position)++;
-    } else if (string[*position] == ':') {
-        std::cout << "Error in file format. Missing terminating <'> in " << string << std::endl; return "";
+    } else if (string[*position] == L':') {
+        std::cout << "Error in file format. Missing terminating <'> in " << ConvertTostring(string, locate) << std::endl; return L"";
     } else {
-        std::cout << "Error in file format. Illegal symbol in word " << string << std::endl; return "";
+        std::cout << "Error in file format. Illegal symbol in word " << ConvertTostring(string, locate) <<", Symbol: <" << (char)string[*position] << "> at position " << *position << std::endl; return L"";
     }
-    
-    std::string word = string.substr(indexFirst, *position - indexFirst - 1);
-    
-    return word;
+
+    return string.substr(indexFirst, *position - indexFirst - 1);
 }
-void SaveFile::PrintAllProperties() {
-    for (const auto& property: _Map) {
-        std::cout << property.first << std::endl;
-    }
-}
-bool SaveFile::ReadSave(const std::string& FilePath)
+
+bool SaveFile::ReadSave(const std::string& FilePath, const char * locate_second, const char * locate_first)
 {
     std::string string;
 
@@ -128,12 +140,13 @@ bool SaveFile::ReadSave(const std::string& FilePath)
         std::cerr << "Cant opent file" << FilePath << '\n';
         return false;
     }
+
     int index = 0;
     while (std::getline(file, string)) {
         //std::cout << "Line: " << index;
         index += 1;
         size_t indexSeparator = 0;
-        std::string Propetry = Word(string, &indexSeparator);
+        std::string Propetry = ConvertTostring(Word(ConvertToWstring(string, locate_first), &indexSeparator, locate_first), locate_first);
 
         if (Propetry == "")
             return false;
@@ -148,20 +161,20 @@ bool SaveFile::ReadSave(const std::string& FilePath)
 
         SaveFile::AddProperty(Propetry);
         //std::cout << FilePath << " " << Propetry << std::endl;
-        std::string Value = Word(string, &indexSeparator);
+        std::string Value = ConvertTostring(Word(ConvertToWstring(string, locate_second), &indexSeparator, locate_second), locate_second);
 
         if (Value == "") return false;
-        SaveFile::SetProperty(Propetry, Value);
+        SaveFile::SetProperty(Propetry, Value, locate_second);
 
 
     }
     return true;
 }
 
-std::string SaveFile::ReadProperty(const std::string& Property)
+std::string SaveFile::ReadProperty(const std::string& Property, const char * locate_second, const char * locate_first)
 {
-    if (!SaveFile::IsPropertyExists(Property)) {
+    if (!SaveFile::IsPropertyExists(ConvertToWstring(Property, locate_first), locate_first)) {
         return "";
     }
-    return _Map[Property];
+    return ConvertTostring(_Map[ConvertToWstring(Property, locate_first)], locate_second);
 }

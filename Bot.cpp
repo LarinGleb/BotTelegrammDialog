@@ -66,8 +66,8 @@ int main()
     ReviewState BotReviewState = WAITING_COMMAND;
     Event *current_event = new Event();
 
-    Save.ReadSave("../BotSettings.txt");
-    TgBot::Bot bot(Save.ReadProperty("Token"));
+    Save.ReadSave("../BotSettings.txt", ENGLISH);
+    TgBot::Bot bot(Save.ReadProperty("Token", ENGLISH));
 
     db_api::Connector conn(hostname.c_str(), username.c_str(), password.c_str(), "rpnac5");
 
@@ -177,9 +177,9 @@ int main()
                            return;
                         }
                         SaveFile ReadReviews;
-                        ReadReviews.ReadSave("../BotReview/Events/" + current_event->GetName() + ".txt");
+                        ReadReviews.ReadSave("../BotReview/Events/" + current_event->GetName() + ".txt", RUSSION, ENGLISH);
                         for (auto const & event: ReadReviews.GetMap()) {
-                            bot.getApi().sendMessage(message->chat->id, event.first + ": \n" + event.second); 
+                            bot.getApi().sendMessage(message->chat->id, ReadReviews.ConvertTostring(event.first, ENGLISH) + ": \n" + ReadReviews.ConvertTostring(event.second, RUSSION)); 
                         }
                         BotReviewState = WAITING_COMMAND;
                         break;
