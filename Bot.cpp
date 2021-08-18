@@ -4,7 +4,9 @@
 #include "tgbot/tgbot.h"
 #include "ForTD/PPForTD.h"
 #include "LibDB/DB.h"
-
+#include "BotReview/BotReview.cpp"
+#include <iostream>
+#include <experimental/filesystem>
 
 typedef enum activestate_t {
     EXIT,
@@ -21,25 +23,11 @@ typedef enum botstate_t {
     BOTPARCE
 } StateBot;
 
-StateBot GetState(std::string State) {
-    if (State == "botfriend") {
-        return BOTFRIEND;
-    }
-    else if (State == "botreview") {
-        return BOTREVIEW;
-    }
-    else { 
-        return DEFAULT;
-    }
+bool CheckIsCommnad(std::string Message) {
+    return StringTools::startsWith(Message, "/list") | StringTools::startsWith(Message, "/start");
 }
 
-ActiveBot GetActive(std::string State) {
-    if (State == "active") {return EXIT;}
-    else {return EXIT;}
-}
-
-bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType) {
-
+bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType, StateBot *State, ReviewState * Review) {
     bot.getEvents().onCommand("start", [&bot, ActiveType](TgBot::Message::Ptr message) { 
         bot.getApi().sendMessage(message->chat->id, "Hi!");
         *ActiveType = ACTIVE;
@@ -52,6 +40,11 @@ bool InitCommandsBotMain(TgBot::Bot &bot, ActiveBot *ActiveType) {
         bot.getApi().sendMessage(message->chat->id, "Writing help");
     });
     
+
+    bot.getEvents().onCommand("review", [&bot, Review, State](TgBot::Message::Ptr message) {
+        *State = BOTREVIEW;
+        InitCommandsBotReview(bot, Review, message);
+    });
 
     return true;
 }
@@ -70,12 +63,15 @@ int main()
     SaveFile Save;
     ActiveBot MyState = ACTIVE;
     StateBot BotState = DEFAULT;
+    ReviewState BotReviewState = WAITING_COMMAND;
+    Event *current_event = new Event();
+
     Save.ReadSave("../BotSettings.txt");
     TgBot::Bot bot(Save.ReadProperty("Token"));
 
     db_api::Connector conn(hostname.c_str(), username.c_str(), password.c_str(), "rpnac5");
 
-    InitCommandsBotMain(bot, &MyState);
+    InitCommandsBotMain(bot, &MyState, &BotState, &BotReviewState);
 
     TgBot::InlineKeyboardMarkup::Ptr keyboardBot(new TgBot::InlineKeyboardMarkup);
     std::vector<TgBot::InlineKeyboardButton::Ptr> row0;
@@ -90,6 +86,8 @@ int main()
     bot.getEvents().onCommand("moduls", [&bot, &BotState, &keyboardBot](TgBot::Message::Ptr message) { 
         bot.getApi().sendMessage(message->chat->id, "Выберите бота: ", false, 0, keyboardBot);
     });
+
+    InitCommandsBotMain(bot, &MyState, &BotState, &BotReviewState);
 
     bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Price, &EatOrNo, &AddPodsk, &BotState, &conn](TgBot::CallbackQuery::Ptr query) {
         if ((StringTools::startsWith(query->data, "AddNew")) || (StringTools::startsWith(query->data, "ToKnow"))){
@@ -117,7 +115,7 @@ int main()
     });
 
 
-    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn](TgBot::Message::Ptr message)    {
+    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn, &BotReviewState, current_event](TgBot::Message::Ptr message)    {
         switch (MyState)
         {
         case ACTIVE:
@@ -140,6 +138,108 @@ int main()
                 break;
 
                 case BOTREVIEW:
+                    switch (BotReviewState)
+                    {
+                    
+                    case WAITING_COMMAND:
+                        break;
+                    case WAITING_NAME_EVENT: {
+                        if(!GetEventByName(current_event, message->text.c_str())) {
+                            if (CheckIsCommnad(message->text.c_str())) {
+                               return;
+                            }
+                            else {
+                                bot.getApi().sendMessage(message->chat->id, "Такого мероприятия не существует!"); 
+                            }
+                           return;
+                        }
+                        BotReviewState = WAITING_REVIE;
+                        bot.getApi().sendMessage(message->chat->id, "Введите отзыв: "); 
+                        break;
+                    }
+                    case WAITING_REVIE: {
+                        BotReviewState = WAITING_COMMAND;
+                        if(current_event->AddReview(message->text.c_str()) == ERROR_NAME) {
+                            bot.getApi().sendMessage(message->chat->id, "Неверный формат отзыва!");
+                            return;     
+                        }
+                        
+                        current_event->SaveEvent(current_event->GetName());
+                        bot.getApi().sendMessage(message->chat->id, "Спасибо за отзыв!"); 
+                        break;
+                    }
+
+                    case WAITING_NAME_EVENT_READING: {
+                        if(!GetEventByName(current_event, message->text.c_str())) {
+                            if (CheckIsCommnad(message->text.c_str())) {
+                               return;
+                            }
+                            else {
+                                bot.getApi().sendMessage(message->chat->id, "Такого мероприятия не существует!"); 
+                            }
+                           return;
+                        }
+                        SaveFile ReadReviews;
+                        ReadReviews.ReadSave("../BotReview/Events/" + current_event->GetName() + ".txt");
+                        for (auto const & event: ReadReviews.GetMap()) {
+                            bot.getApi().sendMessage(message->chat->id, event.first + ": \n" + event.second); 
+                        }
+                        BotReviewState = WAITING_COMMAND;
+                        break;
+                    }
+                    case WAITING_PASSOWRD: {
+                        std::string Password = message->text.c_str();
+                        if (Password == "123") {
+                            BotReviewState = WAITING_NAME_EVENT_ADDED;
+                            bot.getApi().sendMessage(message->chat->id, "Введите название мероприятия"); 
+                        }
+                        else {
+                            bot.getApi().sendMessage(message->chat->id, "Вы не препод! Не пытайтесь даже!");
+                            BotReviewState = WAITING_COMMAND;
+                            return;
+                        }
+                        break;
+                    }
+                    case WAITING_NAME_EVENT_ADDED: {
+                        Event *event = new Event(message->text.c_str());
+                        event->SaveEvent(event->GetName());
+                        if(AddEvent(event) == ERROR_NAME) {
+                            bot.getApi().sendMessage(message->chat->id, "Ошибка в названии!");
+                            return;    
+                        };
+                        BotReviewState = WAITING_COMMAND;
+                        bot.getApi().sendMessage(message->chat->id, "Успешно созданно!"); 
+                        break;
+                    }
+                    case WAITING_PASSOWRD_FOR_DELETE: {
+                        std::string Password = message->text.c_str();
+                        if (Password == "123") {
+                            BotReviewState = WAITING_NAME_EVENT_DELETE;
+                            bot.getApi().sendMessage(message->chat->id, "Введите название мероприятия"); 
+                        }
+                        else {
+                            bot.getApi().sendMessage(message->chat->id, "Вы не препод! Не пытайтесь даже!");
+                            BotReviewState = WAITING_COMMAND;
+                            return;
+                        }
+                        break;
+                    }
+                    case WAITING_NAME_EVENT_DELETE: {
+                        std::string Event = message->text;
+                        if(!GetEventByName(current_event, message->text.c_str())) {
+                            if (CheckIsCommnad(message->text.c_str())) {
+                               return;
+                            }
+                            else {
+                                bot.getApi().sendMessage(message->chat->id, "Такого мероприятия не существует!"); 
+                            }
+                           return;
+                        }
+                        std::cout << "deleting event...\n";
+                        DeleteEvent(*current_event);
+                        BotReviewState = WAITING_COMMAND;
+                    }
+                }
                 break;
 
                 case BOTPARCE: // for sasha

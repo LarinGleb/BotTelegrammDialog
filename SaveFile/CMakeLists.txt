@@ -9,7 +9,7 @@ add_library(SaveLib SHARED SaveFile.cpp)
 add_to_target_clang(${CMAKE_SOURCE_DIR}/SaveFile/SaveFile.cpp)
 add_to_target_clang(${CMAKE_SOURCE_DIR}/SaveFile/SaveFile.h)
 
-add_executable(SaveTest tests/SaveFileTest.cpp SaveFile.cpp)
+#add_executable(SaveTest tests/SaveFileTest.cpp SaveFile.cpp)
 
 enable_testing()
 
@@ -17,5 +17,5 @@ find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
-target_link_libraries(SaveTest ${GTEST_LIBRARIES} Threads::Threads)
-add_test(SaveTest "./TestSave")
+#target_link_libraries(SaveTest ${GTEST_LIBRARIES} Threads::Threads)
+#dd_test(SaveTest "./TestSave")

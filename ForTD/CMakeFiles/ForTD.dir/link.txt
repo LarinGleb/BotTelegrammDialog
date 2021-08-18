@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC  -std=c++11 -Wall -g  -shared -Wl,-soname,libForTD.so -o libForTD.so CMakeFiles/ForTD.dir/PPForTD.cpp.o 

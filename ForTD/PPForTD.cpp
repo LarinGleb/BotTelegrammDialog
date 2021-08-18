@@ -52,12 +52,12 @@ std::string TDAddOrKnow(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
     keyboardSex->inlineKeyboard.push_back(row1);
 
     if (StringTools::startsWith(query->data, "AddNew")) {
-        bot.getApi().sendMessage(query->message->chat->id, "Отлтчно! Для кого будет подсказка?" ,false, 0, keyboardSex, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "Отлично! Для кого будет подсказка?" ,false, 0, keyboardSex, "Markdown");
         return"AddNew";
     }
 
     if(StringTools::startsWith(query->data, "ToKnow")) {
-        bot.getApi().sendMessage(query->message->chat->id, "Отлтчно! Для кого будет подсказка?" ,false, 0, keyboardSex, "Markdown");
+        bot.getApi().sendMessage(query->message->chat->id, "Отлично! Для кого будет подсказка?" ,false, 0, keyboardSex, "Markdown");
         return "ToKnow";
     }
     
