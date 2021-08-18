@@ -71,7 +71,7 @@ int main()
 
     db_api::Connector conn(hostname.c_str(), username.c_str(), password.c_str(), "rpnac5");
 
-    InitCommandsBotMain(bot, &MyState);
+    InitCommandsBotMain(bot, &MyState, &BotState, &BotReviewState);
 
     TgBot::InlineKeyboardMarkup::Ptr keyboardBot(new TgBot::InlineKeyboardMarkup);
     std::vector<TgBot::InlineKeyboardButton::Ptr> row0;
@@ -89,7 +89,7 @@ int main()
 
     InitCommandsBotMain(bot, &MyState, &BotState, &BotReviewState);
 
-    bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Prise, &EatOrNo, &AddPodsk, &BotState, &conn](TgBot::CallbackQuery::Ptr query) {
+    bot.getEvents().onCallbackQuery([&bot, &AddOrKnow, &Sex, &Price, &EatOrNo, &AddPodsk, &BotState, &conn](TgBot::CallbackQuery::Ptr query) {
         if ((StringTools::startsWith(query->data, "AddNew")) || (StringTools::startsWith(query->data, "ToKnow"))){
             AddOrKnow = TDAddOrKnow(bot, query);
         }
@@ -115,7 +115,7 @@ int main()
     });
 
 
-    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &connm, &BotReviewState, current_event](TgBot::Message::Ptr message)    {
+    bot.getEvents().onAnyMessage([&bot, &BotState, &MyState, &AddPodsk, &Sex, &Price, &EatOrNo, &conn, &BotReviewState, current_event](TgBot::Message::Ptr message)    {
         switch (MyState)
         {
         case ACTIVE:
