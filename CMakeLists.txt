@@ -21,21 +21,12 @@ include(${CMAKE_SOURCE_DIR}/CMake/clang-format.cmake)
 add_subdirectory(SaveFile)
 add_subdirectory(CMake)
 add_subdirectory(ForTD)
-<<<<<<< HEAD
 add_subdirectory(LibDB)
-
-
-target_link_libraries(echobot SaveLib)
-target_link_libraries(echobot ForTD)
-target_link_libraries(echobot LibDB)
-
-
-=======
->>>>>>> Main Cmake
 add_subdirectory(BotReview)
 
 target_link_libraries(echobot SaveLib)
 target_link_libraries(echobot ForTD)
+target_link_libraries(echobot LibDB)
 target_link_libraries(echobot ReviewLib)
 
 include_directories(/usr/local/include ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
