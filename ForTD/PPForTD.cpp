@@ -24,6 +24,7 @@ bool InitBotTD(TgBot::Bot& bot, std::shared_ptr<TgBot::Message> message) {
     "что можно подарить тайному другу, и для тех, кто хочет помочь справиться с этим другим." 
     "Итак, ты хочешь узнать подсказку или помочь другим, добавив свой вариант?", false, 0, keyboard);
 
+
     return true;
 }
 
@@ -93,6 +94,7 @@ std::string TDSex(TgBot::Bot& bot, TgBot::CallbackQuery::Ptr& query){
 
     else if(StringTools::startsWith(query->data, "ForGirl")){ 
         bot.getApi().sendMessage(query->message->chat->id, "А сколько будет стоить?" ,false, 0, keyboardPrice, "Markdown");
+
         return "Girl";
     }
 
