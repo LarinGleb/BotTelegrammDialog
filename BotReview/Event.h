@@ -27,9 +27,9 @@ public:
 
     void PrintAllRevies();
     bool Rename(std::string Mame);
-    bool AddReview(std::string Review);
+    int AddReview(std::string Review);
     bool RemoveReview(std::string ID);
-    bool SaveEvent(std::string Name);
+    int SaveEvent(std::string Name);
     bool ReadFromFile(std::string Path);
     int GetCount() {return m_CountReviews;}
     std::string GetName() {return m_Name;}

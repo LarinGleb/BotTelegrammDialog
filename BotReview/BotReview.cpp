@@ -5,6 +5,8 @@
 #include <list>
 #include <sstream>
 
+#define ERROR_FIND_NAME 7
+
 typedef enum botreview_t {
     WAITING_REVIE,
     WAITING_COMMAND,
@@ -17,30 +19,33 @@ typedef enum botreview_t {
 } ReviewState;
 std::list<Event *> ListEvents;
 
-bool AddEvent(Event *event) {
+int AddEvent(Event *event) {
     ListEvents.push_back(event);
     SaveFile AddSave;
-    AddSave.ReadSave("../BotReview/Events/Events.txt", ENGLISH);
+    AddSave.ReadSave("../BotReview/Events/Events.txt");
 
-    AddSave.AddProperty(event->GetName());
-    AddSave.SetProperty(event->GetName(), event->GetName() + ".txt", ENGLISH);
-    AddSave.MakeSave("../BotReview/Events/Events.txt", ENGLISH);
-    return true;
+    if(AddSave.AddProperty(event->GetName()) == ERROR_NAME) {
+        return ERROR_NAME;
+    }
+
+    AddSave.SetProperty(event->GetName(), event->GetName() + ".txt");
+    AddSave.MakeSave("../BotReview/Events/Events.txt");
+    return OK;
 }
 
-bool GetEventByName(Event * NullEvent, std::string name) {
+int GetEventByName(Event * NullEvent, std::string name) {
     for (Event *event: ListEvents) {
         if  (event->GetName() == name) {
             event->ReadFromFile("../BotReview/Events/" + event->GetName() + ".txt");
             *NullEvent = *event;
-            return true;
+            return OK;
         }
     }
-    return false;
+    return ERROR_FIND_NAME;
 }
-bool DeleteEvent(Event eventDelete) {
+int DeleteEvent(Event eventDelete) {
     SaveFile DeleteEvent;
-    DeleteEvent.ReadSave("../BotReview/Events/Events.txt", ENGLISH);
+    DeleteEvent.ReadSave("../BotReview/Events/Events.txt");
 
     for (const auto& event: ListEvents) {
         if (event->GetName() == eventDelete.GetName()) {
@@ -50,21 +55,21 @@ bool DeleteEvent(Event eventDelete) {
     }
 
     DeleteEvent.DeleteProperty(eventDelete.GetName());
-    DeleteEvent.MakeSave("../BotReview/Events/Events.txt", ENGLISH);
+    DeleteEvent.MakeSave("../BotReview/Events/Events.txt");
 
     std::stringstream Path ("../BotReview/Events/" + eventDelete.GetName() + ".txt");
     std::remove(Path.str().c_str());
-    return true;
+    return OK;
 }
 
 bool InitCommandsBotReview(TgBot::Bot &bot, ReviewState *BotState, TgBot::Message::Ptr message) {
 
     SaveFile Save{};
     *BotState = WAITING_COMMAND;
-    Save.ReadSave("../BotReview/Events/Events.txt", ENGLISH);
+    Save.ReadSave("../BotReview/Events/Events.txt");
         for (auto const & eventpair: Save.GetMap()) {
-        Event *event = new Event(Save.ConvertTostring(eventpair.first, ENGLISH));
-        event->ReadFromFile("../BotReview/Events/" + Save.ConvertTostring(eventpair.second, ENGLISH));
+        Event *event = new Event(eventpair.first);
+        event->ReadFromFile("../BotReview/Events/" + eventpair.second);
         ListEvents.push_back(event);
     }
     
@@ -74,9 +79,9 @@ bool InitCommandsBotReview(TgBot::Bot &bot, ReviewState *BotState, TgBot::Messag
         SaveFile Save{};
         std::string Message = "Мероприятия: \n";
         int lineMessage = 1;
-        Save.ReadSave("../BotReview/Events/Events.txt", ENGLISH);
+        Save.ReadSave("../BotReview/Events/Events.txt");
         for(const auto& eventpair : Save.GetMap()) {
-            Message += std::to_string(lineMessage) + ". " + Save.ConvertTostring(eventpair.first, ENGLISH) + '\n';
+            Message += std::to_string(lineMessage) + ". "  + eventpair.first + '\n';
             lineMessage += 1;
         }
         bot.getApi().sendMessage(message->chat->id, Message);

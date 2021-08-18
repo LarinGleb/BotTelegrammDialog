@@ -66,8 +66,8 @@ int main()
     ReviewState BotReviewState = WAITING_COMMAND;
     Event *current_event = new Event();
 
-    Save.ReadSave("../BotSettings.txt", ENGLISH);
-    TgBot::Bot bot(Save.ReadProperty("Token", ENGLISH));
+    Save.ReadSave("../BotSettings.txt");
+    TgBot::Bot bot(Save.ReadProperty("Token"));
 
     db_api::Connector conn(hostname.c_str(), username.c_str(), password.c_str(), "rpnac5");
 
@@ -158,9 +158,12 @@ int main()
                         break;
                     }
                     case WAITING_REVIE: {
-                        
-                        current_event->AddReview(message->text.c_str());
                         BotReviewState = WAITING_COMMAND;
+                        if(current_event->AddReview(message->text.c_str()) == ERROR_NAME) {
+                            bot.getApi().sendMessage(message->chat->id, "Неверный формат отзыва!");
+                            return;     
+                        }
+                        
                         current_event->SaveEvent(current_event->GetName());
                         bot.getApi().sendMessage(message->chat->id, "Спасибо за отзыв!"); 
                         break;
@@ -177,9 +180,9 @@ int main()
                            return;
                         }
                         SaveFile ReadReviews;
-                        ReadReviews.ReadSave("../BotReview/Events/" + current_event->GetName() + ".txt", RUSSION, ENGLISH);
+                        ReadReviews.ReadSave("../BotReview/Events/" + current_event->GetName() + ".txt");
                         for (auto const & event: ReadReviews.GetMap()) {
-                            bot.getApi().sendMessage(message->chat->id, ReadReviews.ConvertTostring(event.first, ENGLISH) + ": \n" + ReadReviews.ConvertTostring(event.second, RUSSION)); 
+                            bot.getApi().sendMessage(message->chat->id, event.first + ": \n" + event.second); 
                         }
                         BotReviewState = WAITING_COMMAND;
                         break;
@@ -200,7 +203,10 @@ int main()
                     case WAITING_NAME_EVENT_ADDED: {
                         Event *event = new Event(message->text.c_str());
                         event->SaveEvent(event->GetName());
-                        AddEvent(event);
+                        if(AddEvent(event) == ERROR_NAME) {
+                            bot.getApi().sendMessage(message->chat->id, "Ошибка в названии!");
+                            return;    
+                        };
                         BotReviewState = WAITING_COMMAND;
                         bot.getApi().sendMessage(message->chat->id, "Успешно созданно!"); 
                         break;
