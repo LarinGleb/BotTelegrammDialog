@@ -23,11 +23,14 @@ add_subdirectory(CMake)
 add_subdirectory(ForTD)
 add_subdirectory(LibDB)
 add_subdirectory(BotReview)
+add_subdirectory(dirVlad)
+
 
 target_link_libraries(echobot SaveLib)
-target_link_libraries(echobot ForTD)
 target_link_libraries(echobot LibDB)
 target_link_libraries(echobot ReviewLib)
+target_link_libraries(echobot dirVlad)
+
 
 include_directories(/usr/local/include ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
 
@@ -36,4 +39,4 @@ include_directories(/usr/local/include ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DI
 
 target_link_libraries(echobot /usr/local/lib/libTgBot.a ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
-add_dependencies(echobot ReviewLib SaveLib ForTD LibDB)
+add_dependencies(echobot ReviewLib SaveLib ForTD dirVlad LibDB)

@@ -11,7 +11,6 @@
 #include <xdevapi.h>
 #include "tgbot/tgbot.h"
 
-
 namespace db_api {
 struct Task {
     std::string text;
@@ -53,6 +52,9 @@ class Connector {
     void AddPo(const std::string& AddPodsk, const std::string Sex,const std::string Price, const bool EatOrNo, const TgBot::Message::Ptr& message, TgBot::Bot& bot);
     void KnowPo(const std::string Sex, const std::string Price, const bool EatOrNo, const TgBot::Message::Ptr& message, const TgBot::Bot& bot);
 
+    void AddTown(const std::string CITY);
+    void TownDescriptions(const std::string Descr, const std::string CITY);
+    void SearchDescriptions(const std::string CITY_, const TgBot::Message::Ptr& message, const TgBot::Bot& bot);
   private:
     sql::Driver*     driver_;
     sql::Connection* con_;
